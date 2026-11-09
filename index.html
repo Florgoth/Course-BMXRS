@@ -130,12 +130,40 @@ return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w
 };
 const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
+
+
+let authStep='login';
+let pendingEmail='';
+
+const verificationV=()=>`
+<div class="card" style="max-width:340px;margin:40px auto">
+<h2>Vérification du courriel</h2>
+<p>Un code de vérification a été envoyé à :</p>
+<p><b>${esc(pendingEmail)}</b></p>
+
+<div class="row">
+<input id="otp" type="text" inputmode="numeric"
+maxlength="6" placeholder="Code à 6 chiffres"
+style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
+
+<button class="p" onclick="verifyEmailCode()">Vérifier le code</button>
+<button onclick="resendCode()">Renvoyer le code</button>
+<button onclick="backToLogin()">Retour à la connexion</button>
+</div>
+<p class="mut">Vérifie également tes courriels indésirables.</p>
+</div>`;
+
+
 function render(){
  const locked=sb&&!user;
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  $('#sel').style.display=sb&&user?'':'none';
  $('#sel').innerHTML=courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)}</option>`).join('');
- $('#app').innerHTML=locked?loginV():V[tab]()}
+ 
+  $('#app').innerHTML=locked?
+  (authStep==='verify'?verificationV():loginV())
+  :V[tab]();
+}
 
 // ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
@@ -152,22 +180,114 @@ async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course 
  if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
  tab='coureurs';save();render()}
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
+
 async function login(){
  try{stat('Connexion…');const A=sb.auth,c={email:$('#em').value.trim(),password:$('#pw').value};
   const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
   if(r&&r.error){stat('');return alert('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
-  user=true;await boot();stat('');render()}
- catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
+  user=true;await boot();stat('');render();
+  authStep='login';
+ }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
+
+
 async function signup(){
  const em=$('#em').value.trim(),pw=$('#pw').value;
- if(!em||pw.length<8)return alert('Entre un courriel et un mot de passe de 8 caractères minimum.');
- try{stat('Création du compte…');const A=sb.auth;
-  const r=A.signUp&&A.signUp.email?await A.signUp.email({email:em,password:pw,name:em.split('@')[0]}):await A.signUp({email:em,password:pw});
-  if(r&&r.error){stat('');return alert('Création refusée : '+(r.error.message||JSON.stringify(r.error)))}
-  const s=await A.getSession();
-  if(!(s&&s.data&&s.data.session)){stat('');return alert('Compte créé. Si Neon demande de vérifier le courriel, fais-le, puis clique « Se connecter ».')}
-  user=true;await boot();stat('');render()}
- catch(e){stat('');alert('Erreur à la création : '+(e.message||e))}}
+
+ if(!em||!em.includes('@')||pw.length<8)
+   return alert('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
+
+ try{
+  stat('Création du compte…');
+
+  const r=await sb.auth.signUp.email({
+    email:em,
+    password:pw,
+    name:em.split('@')[0]
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Création refusée : '+r.error.message);
+  }
+
+  pendingEmail=em;
+  authStep='verify';
+  stat('');
+  render();
+
+  alert('Compte créé. Entre le code envoyé par courriel.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur à la création : '+(e.message||e));
+ }
+}
+
+
+async function verifyEmailCode(){
+ const otp=$('#otp').value.trim();
+
+ if(!/^\d{6}$/.test(otp))
+   return alert('Entre le code à 6 chiffres.');
+
+ try{
+  stat('Vérification…');
+
+  const r=await sb.auth.emailOtp.verifyEmail({
+    email:pendingEmail,
+    otp:otp
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Code refusé : '+r.error.message);
+  }
+
+  try{await sb.auth.signOut()}catch(e){}
+
+  user=null;
+  authStep='login';
+  stat('');
+  render();
+
+  alert('Courriel vérifié ! Tu peux maintenant te connecter.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur de vérification : '+(e.message||e));
+ }
+}
+ 
+async function resendCode(){
+ try{
+  stat('Envoi du code…');
+
+  const r=await sb.auth.emailOtp.sendVerificationOtp({
+    email:pendingEmail,
+    type:'email-verification'
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Erreur : '+r.error.message);
+  }
+
+  stat('');
+  alert('Un nouveau code a été envoyé.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur : '+(e.message||e));
+ }
+}
+
+function backToLogin(){
+ authStep='login';
+ render();
+ stat('');
+}
+
+
 async function boot(){await loadList();const id=localStorage.bmx_cid;
  if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
  else await newC()}
