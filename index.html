@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BMX Race – Course locale</title>
+<title>BMX RIVE-SUD – COURSE LOCALE</title>
 <style>
 :root{--bg:#1f2023;--bar:#161719;--card:#2a2c30;--line:#40434a;--tx:#ededed;--mut:#9a9ea6;--pk:#c2185b;--or:#ff8f00;--ye:#ffd600}
 *{box-sizing:border-box}
@@ -12,7 +12,7 @@ h2{color:var(--or);font-size:16px;margin:18px 0 6px}
 nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;background:#25272b}
 button,select,input,textarea{font:inherit;color:var(--tx);background:#34373c;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button:hover{border-color:var(--or)}
-button.p{background:var(--pk);border-color:var(--pk)}button.on{background:var(--or);border-color:var(--or);color:#111;font-weight:600}
+header button{min-width:40px;font-size:18px;line-height:1;padding:6px 8px}
 :focus-visible{outline:2px solid var(--ye);outline-offset:1px}
 main{padding:14px;max-width:1150px;margin:auto}
 table{border-collapse:collapse;width:100%}
@@ -32,12 +32,12 @@ select.dup{border-color:#f44;background:#5a1d1d}
 </style></head><body>
 
 <header>
-<h1>BMX RACE · Course locale</h1>
+<h1>BMX RIVE-SUD · COURSE LOCALE</h1>
 <select id="sel" onchange="openC(this.value).then(render)"></select>
-<button onclick="newC()">Nouvelle course</button>
-<button onclick="renC()">Renommer</button>
-<button onclick="delC()">Supprimer</button>
-<button onclick="reload()" title="Recharger depuis le serveur">Recharger</button>
+<button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
+<button onclick="renC()" title="Renommer" aria-label="Renommer">✏️</button>
+<button onclick="delC()" title="Supprimer" aria-label="Supprimer">🗑️</button>
+<button onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">🔄</button>
 <span id="st" class="mut"></span>
 </header>
 
