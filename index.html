@@ -54,6 +54,21 @@ select.gate{font-weight:700}
  table.rt th,table.rt td{font-size:13px;padding:3px 2px}
 }
 
+details.imp{margin:10px 0}
+details.imp>summary{cursor:pointer;list-style:none;padding:8px 12px;background:#34373c;border:1px solid var(--line);border-radius:6px;color:var(--or);font-weight:600}
+details.imp>summary::-webkit-details-marker{display:none}
+details.imp[open]>summary{border-color:var(--or);margin-bottom:8px}
+details.imp .box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--or);border-radius:8px;padding:10px 12px}
+input[type=file]{width:100%;padding:4px;font-size:14px}
+input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);border:0;border-radius:6px;padding:6px 10px;margin-right:8px;cursor:pointer;font:inherit}
+.imp h3{margin:10px 0 4px;font-size:14px;color:var(--or)}
+.imp p{margin:4px 0;font-size:13px}
+.imp .row label{min-width:70px;font-size:13px}
+.imp .row select{flex:1;min-width:0;padding:4px 6px}
+.imp .pv{max-height:180px;overflow-y:auto}
+.imp .pv table{font-size:13px}
+.imp .pv th,.imp .pv td{padding:2px 4px}
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
 
 </style></head><body>
@@ -258,7 +273,7 @@ async function loadImportFile(file){
 
   $('#importInfo').innerHTML=
    '<b>Fichier :</b> '+esc(importFileName)+
-   '<br><b>Lignes détectées :</b> '+importRows.length+
+   '<br><b>Lignes :</b> '+importRows.length+
    '<br><b>Feuille :</b> '+esc(wb.SheetNames[0]);
 
   renderImportMapping();
@@ -270,25 +285,17 @@ async function loadImportFile(file){
 }
 
 function renderImportMapping(){
- const opts=importHeaders.map((h,i)=>
-  '<option value="'+i+'">'+esc(h)+'</option>'
- ).join('');
-
  $('#importMapping').innerHTML=
- '<h3>Association des colonnes</h3>'+
- '<p>Indique quelle colonne correspond à chaque donnée BMX.</p>'+
- importFields.map(f=>
-  '<div class="row"><label style="min-width:100px">'+
-  f.label+(f.required?' *':'')+'</label>'+
-  '<select onchange="setImportMap(\''+f.key+'\',this.value)">'+
-  '<option value="">-- Non utilisé --</option>'+
-  importHeaders.map((h,i)=>
-   '<option value="'+i+'" '+
-   (importMap[f.key]===String(i)?'selected':'')+
-   '>'+esc(h)+'</option>'
-  ).join('')+
-  '</select></div>'
- ).join('');
+  '<h3>Colonnes</h3>'+
+  importFields.map(f=>
+   '<div class="row"><label>'+f.label+(f.required?' *':'')+'</label>'+
+   '<select onchange="setImportMap(\''+f.key+'\',this.value)">'+
+   '<option value="">-- Non utilisé --</option>'+
+   importHeaders.map((h,i)=>
+    '<option value="'+i+'"'+(importMap[f.key]===String(i)?' selected':'')+'>'+esc(h)+'</option>'
+   ).join('')+
+   '</select></div>'
+  ).join('');
 
  previewImport();
 }
@@ -323,25 +330,24 @@ function previewImport(){
  const invalid=rows.length-valid.length;
 
  $('#importPreview').innerHTML=
- '<h3>Aperçu des données</h3>'+
- '<p><b>'+valid.length+'</b> coureurs valides · '+
- '<b>'+invalid+'</b> lignes ignorées</p>'+
- '<div style="overflow-x:auto"><table>'+
- '<tr><th>Nom</th><th>Numéro</th><th>Âge</th><th>Fille</th><th>État</th></tr>'+
- rows.slice(0,15).map(r=>
-  '<tr>'+
-  '<td>'+esc(importValue(r,'nom'))+'</td>'+
-  '<td>'+esc(importValue(r,'num'))+'</td>'+
-  '<td>'+esc(importValue(r,'age'))+'</td>'+
-  '<td>'+ (isFemale(importValue(r,'f'))?'Oui':'Non')+'</td>'+
-  '<td>'+ (validImportRow(r)?'✓':'⚠️ Invalide')+'</td>'+
-  '</tr>'
- ).join('')+
- '</table></div>'+
- (rows.length>15?'<p class="mut">Aperçu des 15 premières lignes.</p>':'');
+  '<h3>Aperçu</h3>'+
+  '<p><b>'+valid.length+'</b> valides · <b>'+invalid+'</b> ignorées</p>'+
+  '<div class="pv"><table>'+
+  '<tr><th>Nom</th><th>N°</th><th>Âge</th><th>F</th><th></th></tr>'+
+  rows.slice(0,15).map(r=>
+   '<tr>'+
+   '<td>'+esc(importValue(r,'nom'))+'</td>'+
+   '<td>'+esc(importValue(r,'num'))+'</td>'+
+   '<td>'+esc(importValue(r,'age'))+'</td>'+
+   '<td>'+(isFemale(importValue(r,'f'))?'Oui':'Non')+'</td>'+
+   '<td>'+(validImportRow(r)?'✓':'⚠️')+'</td>'+
+   '</tr>'
+  ).join('')+
+  '</table></div>'+
+  (rows.length>15?'<p class="mut">15 premières lignes affichées.</p>':'');
 
  $('#importBtn').disabled=valid.length===0;
- $('#importBtn').textContent='Importer les '+valid.length+' coureurs';
+ $('#importBtn').textContent='Importer '+valid.length+' coureurs';
 }
 
 function confirmImport(){
@@ -414,41 +420,24 @@ ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa po
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 const V={
+
+
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
 
-<div class="card" style="margin:15px 0;border-left-color:var(--or)">
-<h2>IMPORTER DES COUREURS</h2>
-
-<p>Formats acceptés : CSV, XLS, XLSX</p>
-
-<div class="row">
-<input type="file" id="importFile"
-accept=".csv,.xls,.xlsx"
-onchange="loadImportFile(this.files[0])">
-</div>
-
-<div id="importInfo" class="mut">
-Aucun fichier sélectionné.
-</div>
-
+<details class="imp"><summary>📥 Importer des coureurs (CSV / Excel)</summary>
+<div class="box">
+<input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])">
+<div id="importInfo" class="mut" style="font-size:13px;margin-top:6px">Aucun fichier sélectionné.</div>
 <div id="importMapping"></div>
-
 <div id="importPreview"></div>
-
 <div class="row">
-<button class="p" id="importBtn"
-onclick="confirmImport()" disabled>
-Importer les coureurs
-</button>
-
-<button onclick="cancelImport()">
-Annuler
-</button>
+<button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button>
+<button onclick="cancelImport()">Annuler</button>
 </div>
-
 <div id="importResult"></div>
 </div>
+</details>
 
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
