@@ -107,7 +107,7 @@ function setPos(xid,rid,el){
  const n=x.rows.length;
  if(el.value===''){w.pos=''}
  else{const v=+el.value;w.pos=(v>=0&&v<=n)?v:'';if(w.pos==='')el.value=''}
- $('#p'+xid+'_'+rid).textContent=w.pos===''?0:pts(w.pos);
+$('#p'+xid+'_'+rid).textContent=w.pos===0?'DNF':(w.pos===''?0:pts(w.pos));
  const ins=document.querySelectorAll('input[data-x="'+xid+'"]'),c={};
  x.rows.forEach(w=>{if(w.pos>0)c[w.pos]=(c[w.pos]||0)+1});
  ins.forEach(i=>i.classList.toggle('dup',+i.value>0&&c[+i.value]>1));save()}
@@ -343,7 +343,9 @@ ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa po
 const gate=x.pick
  ?`<td>${i+1}<td><select onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
  :`<td><span class="plate">${w.gate}</span>`;
-return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="text" inputmode="numeric" pattern="[0-${n}]" maxlength="1" value="${esc(w.pos)}" data-x="${x.id}" style="width:56px;text-align:center" oninput="this.value=this.value.replace(/[^0-${n}]/g,'').slice(0,1)" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${w.pos===0?'DNF':pts(+w.pos)}{pts(+w.pos)}`}).join('')}</table></div>`};
+
+  return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="text" inputmode="numeric" pattern="[0-${n}]" maxlength="1" value="${esc(w.pos)}" data-x="${x.id}" style="width:56px;text-align:center" oninput="this.value=this.value.replace(/[^0-${n}]/g,'').slice(0,1)" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${w.pos===0?'DNF':pts(+w.pos)}`}).join('')}</table></div>`};
+
 const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
