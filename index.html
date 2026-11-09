@@ -27,23 +27,19 @@ td input[type=number]{width:70px}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
 input.dup{border-color:#f44;background:#5a1d1d}
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}}
+
 </style></head><body>
+
 <header>
 <h1>BMX RACE · Course locale</h1>
-
- $('#sel').style.display=sb&&user?'':'none';
- $('#sel').innerHTML=courses.length
-  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleDateString('fr-CA'):''}</option>`).join('')
-  :'<option value="">(aucune course sauvegardée)</option>';
-
-  
+<select id="sel" onchange="openC(this.value).then(render)"></select>
 <button onclick="newC()">Nouvelle course</button>
 <button onclick="renC()">Renommer</button>
 <button onclick="delC()">Supprimer</button>
 <button onclick="reload()" title="Recharger depuis le serveur">Recharger</button>
-
 <span id="st" class="mut"></span>
 </header>
+
 <nav id="nav"></nav>
 <main id="app"></main>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -408,9 +404,10 @@ function render(){
  const locked=sb&&!user;
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  $('#sel').style.display=sb&&user?'':'none';
- $('#sel').innerHTML=courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)}</option>`).join('');
- 
-  $('#app').innerHTML=locked?
+ $('#sel').innerHTML=courses.length
+  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleDateString('fr-CA'):''}</option>`).join('')
+  :'<option value="">(aucune course sauvegardée)</option>';
+ $('#app').innerHTML=locked?
   (authStep==='verify'?verificationV():loginV())
   :V[tab]();
 }
@@ -428,13 +425,18 @@ async function loadList(){
  if(error){stat('Erreur liste courses : '+error.message);console.error(error)}
  courses=data||[]}
 
-async function openC(id){const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
- if(error)return alert(error.message);cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+async function openC(id){
+ if(!id)return;
+ const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
+ if(error)return alert(error.message);
+ cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+
 async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
  S=Object.assign(DEF(),{points:S.points,groups:S.groups});
  if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
  tab='coureurs';save();render()}
+
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
 async function login(){
