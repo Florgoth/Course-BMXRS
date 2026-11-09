@@ -35,6 +35,17 @@ select.gate option:disabled{color:#aaa}
 select.gate.vide{background:#34373c;color:var(--mut);border-color:var(--line);font-weight:400}
 input.dup{border-color:#f44;background:#5a1d1d}
 select.dup{border-color:#f44;background:#5a1d1d}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+th,td{white-space:nowrap}
+td.nom{white-space:normal;word-break:break-word;min-width:110px}
+
+
+@media (max-width:600px){
+ th,td{padding:4px 5px;font-size:14px}
+ select{padding:4px}
+ .card{padding:8px}
+ td.nom{min-width:90px}
+}
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
 
 </style></head><body>
@@ -386,7 +397,7 @@ const r=R(w.rid)||{};
 const gate=x.pick
  ?`<td>${i+1}<td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
  :`<td><span class="plate">${w.gate}</span>`;
-return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><select data-x="${x.id}" style="width:72px;text-align:center" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td id="p${x.id}_${w.rid}">${w.pos===0||w.pos===''?'':pts(+w.pos)}`}).join('')}</table></div>`};
+return`<tr>${gate}<td>${esc(r.num)}</table></div><td><select data-x="${x.id}" style="width:72px;text-align:center" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td id="p${x.id}_${w.rid}">${w.pos===0||w.pos===''?'':pts(+w.pos)}`}).join('')}</table></div>`};
 
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
