@@ -79,6 +79,14 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 .rider .l2 input{flex:1;min-width:0;padding:4px 8px;font-size:13px}
 .rider .l2 button{border-color:#7a2a2a;color:#ff8a8a}
 
+.card table.rc{table-layout:auto}
+.card table.rc th,.card table.rc td{padding:4px 5px;white-space:nowrap}
+.card table.rc td.nm,.card table.rc th.nm{width:100%;white-space:normal;word-break:break-word;font-weight:600}
+.card table.rc select{width:auto;min-width:0;padding:4px 2px}
+.card table.rc select.gate{width:46px}
+.card table.rc td.pt{text-align:center;min-width:28px}
+.card table.rc td.ch{text-align:center;color:var(--mut)}
+
 @media(max-width:420px){.rider .l1{grid-template-columns:1fr 58px 58px 46px;gap:6px}}
 
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
@@ -416,24 +424,17 @@ const rc=x=>{
  const n=x.rows.length;
  const used=x.rows.map(w=>+w.gate).filter(Boolean);
  const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
- const head='<tr>'+(x.pick?'<th>#</th>':'')+'<th>Gate</th><th>N°</th><th>Nom</th><th>Pos</th><th>Pts</th></tr>';
- const body=rows.map((w,i)=>{
-  const r=R(w.rid)||{};
-  const gate=x.pick
-   ?`<td>${i+1}</td><td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}"${+w.gate===p?' selected':''}${used.includes(p)&&+w.gate!==p?' disabled':''}>${p}</option>`).join('')}</select></td>`
-   :`<td><span class="plate">${w.gate}</span></td>`;
-  const pos=`<select class="ps" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,k)=>`<option value="${k+1}"${w.pos===k+1?' selected':''}>${k+1}</option>`).join('')}</select>`;
-  return `<tr>${gate}<td>${esc(r.num)}</td><td class="nom">${esc(r.nom)}</td><td>${pos}</td><td id="p${x.id}_${w.rid}">${(w.pos===0||w.pos==='')?'':pts(+w.pos)}</td></tr>`;
- }).join('');
  return `<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
 ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
-<table class="rt">${head}${body}</table></div>`;
-};
+<table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
+const gate=x.pick
+ ?`<td class="ch">${i+1}<td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
+ :`<td><span class="plate">${w.gate}</span>`;
+return`<tr>${gate}<td>${esc(r.num)}<td class="nm">${esc(r.nom)}<td><select data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td class="pt" id="p${x.id}_${w.rid}">${w.pos===0?'DNF':pts(+w.pos)}`}).join('')}</table></div>`};
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
-const V={
 
-
+  const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
 
