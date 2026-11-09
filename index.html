@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BMX Race – Course locale</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#1f2023;--bar:#161719;--card:#2a2c30;--line:#40434a;--tx:#ededed;--mut:#9a9ea6;--pk:#c2185b;--or:#ff8f00;--ye:#ffd600}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;background:var(--bar);border-bottom:3px solid var(--pk)}
+h1{font-size:19px;margin:0 auto 0 0;color:var(--ye);letter-spacing:.5px}
+h2{color:var(--or);font-size:16px;margin:18px 0 6px}
+nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;background:#25272b}
+button,select,input,textarea{font:inherit;color:var(--tx);background:#34373c;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button:hover{border-color:var(--or)}
+button.p{background:var(--pk);border-color:var(--pk)}button.on{background:var(--or);border-color:var(--or);color:#111;font-weight:600}
+:focus-visible{outline:2px solid var(--ye);outline-offset:1px}
+main{padding:14px;max-width:1150px;margin:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mut);font-weight:600;font-size:13px}
+td input:not([type=checkbox]){width:100%;min-width:56px}
+td input[type=number]{width:70px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pk);border-radius:8px;padding:10px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.plate{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--ye);color:#111;font-weight:800}
+.mut{color:var(--mut)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+input.dup{border-color:#f44;background:#5a1d1d}
+@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}}
+</style></head><body>
+<header>
+<h1>BMX RACE · Course locale</h1>
+<select id="sel" onchange="openC(this.value).then(render)"></select>
+<button onclick="newC()">Nouvelle course</button>
+<button onclick="reload()" title="Recharger depuis le serveur">Recharger</button>
+<span id="st" class="mut"></span>
+</header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+// ===== Configuration Supabase (laisser vide = mode local, sans compte) =====
+const SB_URL='', SB_KEY='';
+const sb=SB_URL?supabase.createClient(SB_URL,SB_KEY):null;
+
+const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
+ const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
+ m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
+ return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
+let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=id=>S.riders.find(r=>r.id===id);
+const grp=r=>r.go||(S.groups.find(g=>!!g.f===!!r.f&&r.age>=g.min&&r.age<=g.max)||{}).n||'NON DÉFINI';
+const gnames=()=>{const used=new Set(S.riders.map(grp));
+ const a=S.groups.map(g=>g.n).filter(n=>used.has(n));used.forEach(n=>{if(!a.includes(n))a.push(n)});return a};
+const pts=p=>p>0?(S.points[p-1]||0):0;
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+// ===== Logique de course =====
+const mk=(ph,g,label,ids)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
+ S.races.push({id:S.uid++,ph,g,label,rows:ids.map((rid,j)=>({rid,gate:gt[j],pos:''}))})};
+function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv),x=n%nv;let i=0;
+ for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
+function genMotos(){
+ if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
+ S.races=[];
+ for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
+ mt=1;tab='motos';save();render()}
+function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
+ S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
+ return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
+function genDemis(){
+ if(!S.races.some(x=>x.ph<=3))return alert("Génère d'abord les 3 motos.");
+ if(S.races.some(x=>x.ph>3&&x.rows.some(w=>w.pos))&&!confirm('Les résultats des demis et finales seront effacés. Continuer?'))return;
+ S.races=S.races.filter(x=>x.ph<=3);const warn=[];
+ gnames().forEach(g=>{const rk=rank(g).map(o=>o.r.id),n=rk.length;
+  if(n<=8)return mk('F',g,'Finale A',rk);
+  let t=rk;if(n>16){t=rk.slice(0,16);warn.push(g+' ('+n+')')}
+  const d=[[],[]];t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
+  d.forEach((ids,k)=>mk('D',g,'Demi '+(k+1),ids))});
+ if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
+ tab='demis';save();render()}
+function genFinales(){
+ const gs=[...new Set(S.races.filter(x=>x.ph==='D').map(x=>x.g))];
+ if(!gs.length)return alert('Aucun demi à traiter.');
+ S.races=S.races.filter(x=>!(x.ph==='F'&&gs.includes(x.g)));
+ gs.forEach(g=>{const rk=rank(g).map(o=>o.r.id),sc={};
+  S.races.filter(x=>x.ph==='D'&&x.g===g).forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
+  const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
+  mk('F',g,'Finale A',ids.slice(0,8));if(ids.length>8)mk('F',g,'Finale B',ids.slice(8))});
+ tab='finales';save();render()}
+function setPos(xid,rid,el){
+ const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
+ w.pos=el.value===''?'':+el.value;$('#p'+xid+'_'+rid).textContent=pts(+w.pos);
+ const ins=document.querySelectorAll('input[data-x="'+xid+'"]'),c={};
+ x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
+ ins.forEach(i=>i.classList.toggle('dup',!!i.value&&c[+i.value]>1));save()}
+
+// ===== Coureurs =====
+function addR(){const nom=$('#nn').value.trim();if(!nom)return;
+ S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
+function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
+ let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
+ S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
+function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['age','f','go'].includes(k))render()}
+function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
+
+// ===== Vues =====
+const rc=x=>`<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
+<table><tr><th>Porte<th>N°<th>Nom<th>Pos<th>Pts</tr>${[...x.rows].sort((a,b)=>a.gate-b.gate).map(w=>{const r=R(w.rid)||{};
+return`<tr><td><span class="plate">${w.gate}</span><td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="number" min="1" max="8" value="${esc(w.pos)}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${pts(+w.pos)}`}).join('')}</table></div>`;
+const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
+const V={
+coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
+<details><summary class="mut">Importer depuis Excel (colonnes Nom, Numéro, Âge — un âge de 105 ou plus = fille)</summary><textarea id="imp" rows="5" style="width:100%"></textarea><button onclick="impR()">Importer</button></details></div>
+<datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
+<p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
+<table><tr><th>Nom<th>N°<th>Âge<th>Fille<th>Groupe forcé<th>Groupe actuel<th></tr>${S.riders.map(r=>`<tr><td><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"><td><input list="gl" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><td>${esc(grp(r))}<td><button onclick="delR(${r.id})">✕</button>`).join('')}</table>`,
+groupes:()=>`<h2>Points par position</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:64px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
+<h2>Groupes d'âge</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
+<div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
+<p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p>`,
+motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
+class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><b>${esc(g)}</b><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
+finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
+return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
+};
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button></div></div>`;
+function render(){
+ const locked=sb&&!user;
+ $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ $('#sel').style.display=sb&&user?'':'none';
+ $('#sel').innerHTML=courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)}</option>`).join('');
+ $('#app').innerHTML=locked?loginV():V[tab]()}
+
+// ===== Sauvegarde (locale + Supabase) =====
+const stat=t=>$('#st').textContent=t;
+let tm;function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+ stat('Sauvegarde…');clearTimeout(tm);
+ tm=setTimeout(async()=>{const{error}=await sb.from('courses').update({data:S,updated_at:new Date().toISOString()}).eq('id',cid);
+  stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
+async function loadList(){const{data}=await sb.from('courses').select('id,nom').order('updated_at',{ascending:false});courses=data||[]}
+async function openC(id){const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
+ if(error)return alert(error.message);cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
+ if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
+ S=Object.assign(DEF(),{points:S.points,groups:S.groups});
+ if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
+ tab='coureurs';save();render()}
+async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
+async function login(){const{data,error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});
+ if(error)return alert(error.message);user=data.user;await boot();render()}
+async function boot(){await loadList();const id=localStorage.bmx_cid;
+ if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id)}
+(async()=>{
+ if(sb){const{data}=await sb.auth.getSession();user=data.session?data.session.user:null;if(user)await boot()}
+ else{try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
+ render()})();
+</script></body></html>
