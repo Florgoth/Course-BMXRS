@@ -64,29 +64,34 @@ const pts=p=>p>0?(S.points[p-1]||0):0;
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 // ===== Logique de course =====
-const mk=(ph,g,label,ids)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
- S.races.push({id:S.uid++,ph,g,label,rows:ids.map((rid,j)=>({rid,gate:gt[j],pos:''}))})};
+const mk=(ph,g,label,ids,pick)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
+ S.races.push({id:S.uid++,ph,g,label,pick:!!pick,rows:ids.map((rid,j)=>({rid,gate:pick?'':gt[j],pos:''}))})};
+
 function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv),x=n%nv;let i=0;
  for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
+
 function genMotos(){
  if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
  S.races=[];
  for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
  mt=1;tab='motos';save();render()}
+
 function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
  S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
  return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
+
 function genDemis(){
  if(!S.races.some(x=>x.ph<=3))return alert("Génère d'abord les 3 motos.");
  if(S.races.some(x=>x.ph>3&&x.rows.some(w=>w.pos))&&!confirm('Les résultats des demis et finales seront effacés. Continuer?'))return;
  S.races=S.races.filter(x=>x.ph<=3);const warn=[];
  gnames().forEach(g=>{const rk=rank(g).map(o=>o.r.id),n=rk.length;
-  if(n<=8)return mk('F',g,'Finale A',rk);
+if(n<=8)return mk('F',g,'Finale A',rk,true);
   let t=rk;if(n>16){t=rk.slice(0,16);warn.push(g+' ('+n+')')}
   const d=[[],[]];t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
   d.forEach((ids,k)=>mk('D',g,'Demi '+(k+1),ids))});
  if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
  tab='demis';save();render()}
+
 function genFinales(){
  const gs=[...new Set(S.races.filter(x=>x.ph==='D').map(x=>x.g))];
  if(!gs.length)return alert('Aucun demi à traiter.');
@@ -94,14 +99,20 @@ function genFinales(){
  gs.forEach(g=>{const rk=rank(g).map(o=>o.r.id),sc={};
   S.races.filter(x=>x.ph==='D'&&x.g===g).forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
   const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
-  mk('F',g,'Finale A',ids.slice(0,8));if(ids.length>8)mk('F',g,'Finale B',ids.slice(8))});
+mk('F',g,'Finale A',ids.slice(0,8),true);if(ids.length>8)mk('F',g,'Finale B',ids.slice(8),true)});
  tab='finales';save();render()}
+
 function setPos(xid,rid,el){
  const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
  w.pos=el.value===''?'':+el.value;$('#p'+xid+'_'+rid).textContent=pts(+w.pos);
  const ins=document.querySelectorAll('input[data-x="'+xid+'"]'),c={};
  x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
  ins.forEach(i=>i.classList.toggle('dup',!!i.value&&c[+i.value]>1));save()}
+
+ function setGate(xid,rid,el){
+ const x=S.races.find(x=>x.id===xid);
+ x.rows.find(w=>w.rid===rid).gate=el.value===''?'':+el.value;
+ save();render()}
 
 // ===== Coureurs =====
 function addR(){const nom=$('#nn').value.trim();if(!nom)return;
@@ -318,9 +329,17 @@ function cancelImport(){
 
 
 // ===== Vues =====
-const rc=x=>`<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
-<table><tr><th>Porte<th>N°<th>Nom<th>Pos<th>Pts</tr>${[...x.rows].sort((a,b)=>a.gate-b.gate).map(w=>{const r=R(w.rid)||{};
-return`<tr><td><span class="plate">${w.gate}</span><td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="number" min="1" max="8" value="${esc(w.pos)}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${pts(+w.pos)}`}).join('')}</table></div>`;
+
+const rc=x=>{
+ const used=x.rows.map(w=>+w.gate).filter(Boolean);
+ const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
+ return `<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
+${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
+<table><tr>${x.pick?'<th>Choix<th>':'<th>'}Porte<th>N°<th>Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
+const gate=x.pick
+ ?`<td>${i+1}<td><select onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
+ :`<td><span class="plate">${w.gate}</span>`;
+return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="number" min="1" max="8" value="${esc(w.pos)}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${pts(+w.pos)}`}).join('')}</table></div>`};
 const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
