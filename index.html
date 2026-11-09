@@ -30,9 +30,18 @@ input.dup{border-color:#f44;background:#5a1d1d}
 </style></head><body>
 <header>
 <h1>BMX RACE · Course locale</h1>
-<select id="sel" onchange="openC(this.value).then(render)"></select>
+
+ $('#sel').style.display=sb&&user?'':'none';
+ $('#sel').innerHTML=courses.length
+  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleDateString('fr-CA'):''}</option>`).join('')
+  :'<option value="">(aucune course sauvegardée)</option>';
+
+  
 <button onclick="newC()">Nouvelle course</button>
+<button onclick="renC()">Renommer</button>
+<button onclick="delC()">Supprimer</button>
 <button onclick="reload()" title="Recharger depuis le serveur">Recharger</button>
+
 <span id="st" class="mut"></span>
 </header>
 <nav id="nav"></nav>
@@ -412,7 +421,13 @@ let tm;function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return 
  stat('Sauvegarde…');clearTimeout(tm);
  tm=setTimeout(async()=>{const{error}=await sb.from('courses').update({data:S,updated_at:new Date().toISOString()}).eq('id',cid);
   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
-async function loadList(){const{data}=await sb.from('courses').select('id,nom').order('updated_at',{ascending:false});courses=data||[]}
+
+
+async function loadList(){
+ const{data,error}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',{ascending:false});
+ if(error){stat('Erreur liste courses : '+error.message);console.error(error)}
+ courses=data||[]}
+
 async function openC(id){const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
  if(error)return alert(error.message);cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
 async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
@@ -527,6 +542,23 @@ function backToLogin(){
  render();
  stat('');
 }
+
+async function renC(){
+ if(!sb||!cid)return;
+ const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
+ const{error}=await sb.from('courses').update({nom}).eq('id',cid);
+ if(error)return alert(error.message);
+ await loadList();render()}
+ 
+async function delC(){
+ if(!sb||!cid)return;
+ const c=courses.find(c=>c.id===cid);
+ if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
+ const{error}=await sb.from('courses').delete().eq('id',cid);
+ if(error)return alert(error.message);
+ cid=null;await loadList();
+ if(courses[0])await openC(courses[0].id);else await newC();
+ render()}
 
 
 async function boot(){await loadList();const id=localStorage.bmx_cid;
