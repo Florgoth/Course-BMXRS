@@ -36,16 +36,17 @@ select.gate.vide{background:#34373c;color:var(--mut);border-color:var(--line);fo
 input.dup{border-color:#f44;background:#5a1d1d}
 select.dup{border-color:#f44;background:#5a1d1d}
 
-th,td{white-space:nowrap}
-td.nom{white-space:normal;word-break:break-word;min-width:110px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-
+table.rt{table-layout:fixed;width:100%}
+table.rt th,table.rt td{padding:3px 3px;overflow:hidden}
+table.rt .c,table.rt td:not(.nom){text-align:center}
+td.nom{word-break:break-word;font-size:14px}
+select.gate,select.ps{padding:2px 0;width:100%;min-width:0;text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none}
+select.gate{font-weight:700}
 @media (max-width:600px){
- th,td{padding:4px 5px;font-size:14px}
- select{padding:4px}
  .card{padding:8px}
- td.nom{min-width:90px}
+ table.rt th,table.rt td{font-size:13px;padding:3px 2px}
 }
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
 
 </style></head><body>
@@ -390,18 +391,18 @@ const rc=x=>{
  const n=x.rows.length;
  const used=x.rows.map(w=>+w.gate).filter(Boolean);
  const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
- const head='<tr>'+(x.pick?'<th>Choix</th>':'')+'<th>Porte</th><th>N°</th><th>Nom</th><th>Pos</th><th>Pts</th></tr>';
+ const head='<tr>'+(x.pick?'<th>#</th>':'')+'<th>Gate</th><th>N°</th><th>Nom</th><th>Pos</th><th>Pts</th></tr>';
  const body=rows.map((w,i)=>{
   const r=R(w.rid)||{};
   const gate=x.pick
    ?`<td>${i+1}</td><td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}"${+w.gate===p?' selected':''}${used.includes(p)&&+w.gate!==p?' disabled':''}>${p}</option>`).join('')}</select></td>`
    :`<td><span class="plate">${w.gate}</span></td>`;
-  const pos=`<select data-x="${x.id}" style="width:72px;text-align:center" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,k)=>`<option value="${k+1}"${w.pos===k+1?' selected':''}>${k+1}</option>`).join('')}</select>`;
+  const pos=`<select class="ps" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,k)=>`<option value="${k+1}"${w.pos===k+1?' selected':''}>${k+1}</option>`).join('')}</select>`;
   return `<tr>${gate}<td>${esc(r.num)}</td><td class="nom">${esc(r.nom)}</td><td>${pos}</td><td id="p${x.id}_${w.rid}">${(w.pos===0||w.pos==='')?'':pts(+w.pos)}</td></tr>`;
  }).join('');
  return `<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
 ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
-<div class="tw"><table>${head}${body}</table></div></div>`;
+<table class="rt">${head}${body}</table></div>`;
 };
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
