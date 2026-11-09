@@ -439,11 +439,14 @@ function render(){
 
 // ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
-let tm;function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+let tm;function save(){
+  localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
- tm=setTimeout(async()=>{const{error}=await sb.from('courses').update({data:S,updated_at:new Date().toISOString()}).eq('id',cid);
+tm=setTimeout(async()=>{const ts=new Date().toISOString();
+  const{error}=await sb.from('courses').update({data:S,updated_at:ts}).eq('id',cid);
+  if(!error)lastSync=ts;
+  tm=null;
   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
-
 
 async function loadList(){
  const{data,error}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',{ascending:false});
@@ -451,10 +454,8 @@ async function loadList(){
  courses=data||[]}
 
 async function openC(id){
- if(!id)return;
- const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
- if(error)return alert(error.message);
- cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+  const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
 
 async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
@@ -591,6 +592,33 @@ async function delC(){
 async function boot(){await loadList();const id=localStorage.bmx_cid;
  if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
  else await newC()}
+
+// ===== Rafraîchissement automatique =====
+let lastSync='';
+async function autoSync(){
+ if(!sb||!cid||!user)return;
+ // Ne rien faire si quelqu'un est en train de saisir
+ const a=document.activeElement;
+ if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))return;
+ // Ne rien faire si une sauvegarde locale est en attente
+ if(tm)return;
+ try{
+  const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
+  if(error||!data)return;
+  if(data.updated_at!==lastSync){
+   if(lastSync!==''){
+    S=Object.assign(DEF(),data.data);
+    render();
+    stat('Mis à jour automatiquement');
+   }
+   lastSync=data.updated_at;
+  }
+ }catch(e){}
+}
+setInterval(autoSync,5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoSync()});
+window.addEventListener('focus',autoSync);
+
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
   try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
