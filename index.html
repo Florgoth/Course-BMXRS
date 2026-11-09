@@ -2,7 +2,6 @@
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BMX Race – Course locale</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#1f2023;--bar:#161719;--card:#2a2c30;--line:#40434a;--tx:#ededed;--mut:#9a9ea6;--pk:#c2185b;--or:#ff8f00;--ye:#ffd600}
 *{box-sizing:border-box}
@@ -39,9 +38,10 @@ input.dup{border-color:#f44;background:#5a1d1d}
 <nav id="nav"></nav>
 <main id="app"></main>
 <script>
-// ===== Configuration Supabase (laisser vide = mode local, sans compte) =====
-const SB_URL='', SB_KEY='';
-const sb=SB_URL?supabase.createClient(SB_URL,SB_KEY):null;
+// ===== Configuration Neon (laisser vide = mode local, sans compte) =====
+// Console Neon > Auth : URL d'authentification. Console Neon > Data API : URL de l'API.
+const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
+let sb=null;
 
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
  const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
@@ -152,12 +152,16 @@ async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course 
  if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
  tab='coureurs';save();render()}
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
-async function login(){const{data,error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});
- if(error)return alert(error.message);user=data.user;await boot();render()}
+async function login(){const{error}=await sb.auth.signIn.email({email:$('#em').value,password:$('#pw').value});
+ if(error)return alert(error.message);user=true;await boot();render()}
 async function boot(){await loadList();const id=localStorage.bmx_cid;
  if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id)}
 (async()=>{
- if(sb){const{data}=await sb.auth.getSession();user=data.session?data.session.user:null;if(user)await boot()}
- else{try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
+ if(NEON_AUTH_URL&&NEON_DATA_URL){
+  try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
+   sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+   const{data}=await sb.auth.getSession();user=data&&data.session?true:null;if(user)await boot()}
+  catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}}
+ if(!sb){try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
  render()})();
 </script></body></html>
