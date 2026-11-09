@@ -104,10 +104,13 @@ mk('F',g,'Finale A',ids.slice(0,8),true);if(ids.length>8)mk('F',g,'Finale B',ids
 
 function setPos(xid,rid,el){
  const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
- w.pos=el.value===''?'':+el.value;$('#p'+xid+'_'+rid).textContent=pts(+w.pos);
+ const n=x.rows.length;
+ if(el.value===''){w.pos=''}
+ else{const v=+el.value;w.pos=(v>=0&&v<=n)?v:'';if(w.pos==='')el.value=''}
+ $('#p'+xid+'_'+rid).textContent=w.pos===''?0:pts(w.pos);
  const ins=document.querySelectorAll('input[data-x="'+xid+'"]'),c={};
- x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
- ins.forEach(i=>i.classList.toggle('dup',!!i.value&&c[+i.value]>1));save()}
+ x.rows.forEach(w=>{if(w.pos>0)c[w.pos]=(c[w.pos]||0)+1});
+ ins.forEach(i=>i.classList.toggle('dup',+i.value>0&&c[+i.value]>1));save()}
 
  function setGate(xid,rid,el){
  const x=S.races.find(x=>x.id===xid);
@@ -331,15 +334,16 @@ function cancelImport(){
 // ===== Vues =====
 
 const rc=x=>{
+  const n=x.rows.length;
  const used=x.rows.map(w=>+w.gate).filter(Boolean);
  const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
  return `<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
 ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
-<table><tr>${x.pick?'<th>Choix<th>':'<th>'}Porte<th>N°<th>Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
+<table><tr>${x.pick?'<th>Choix<th>':'<th>'}Porte<th>N°<th>Nom<th>Pos<th>Pts<th></tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
 const gate=x.pick
  ?`<td>${i+1}<td><select onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
  :`<td><span class="plate">${w.gate}</span>`;
-return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="number" min="1" max="8" value="${esc(w.pos)}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${pts(+w.pos)}`}).join('')}</table></div>`};
+return`<tr>${gate}<td>${esc(r.num)}<td>${esc(r.nom)}<td><input type="text" inputmode="numeric" pattern="[0-${n}]" maxlength="1" value="${esc(w.pos)}" data-x="${x.id}" style="width:56px;text-align:center" oninput="this.value=this.value.replace(/[^0-${n}]/g,'').slice(0,1)" onchange="setPos(${x.id},${w.rid},this)"><td id="p${x.id}_${w.rid}">${pts(+w.pos)}</td><td class="mut">${w.pos===0?'DNF':''}`}).join('')}</table></div>`};
 const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
