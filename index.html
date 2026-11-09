@@ -129,7 +129,7 @@ podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></di
 return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
 const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
-const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button></div></div>`;
+const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 function render(){
  const locked=sb&&!user;
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
@@ -154,8 +154,16 @@ async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course 
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 async function login(){const{error}=await sb.auth.signIn.email({email:$('#em').value,password:$('#pw').value});
  if(error)return alert(error.message);user=true;await boot();render()}
+async function signup(){const em=$('#em').value.trim(),pw=$('#pw').value;
+ if(!em||pw.length<8)return alert('Entre un courriel et un mot de passe de 8 caractères minimum.');
+ const{error}=await sb.auth.signUp.email({email:em,password:pw,name:em.split('@')[0]});
+ if(error)return alert(error.message);
+ const{data}=await sb.auth.getSession();
+ if(!(data&&data.session))return alert('Compte créé. Si Neon demande de vérifier le courriel, fais-le, puis connecte-toi.');
+ user=true;await boot();render()}
 async function boot(){await loadList();const id=localStorage.bmx_cid;
- if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id)}
+ if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
+ else await newC()}
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
   try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
