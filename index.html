@@ -69,6 +69,19 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 .imp .pv table{font-size:13px}
 .imp .pv th,.imp .pv td{padding:2px 4px}
 
+.rt td{border-bottom:0}
+.rt tr.r1 td{padding-top:8px;border-top:1px solid var(--line)}
+.rt tr.r1 input:not([type=checkbox]){font-weight:600}
+.rt tr.r2 td{padding-bottom:8px;font-size:13px;color:var(--mut)}
+.rt tr.r2 input{padding:3px 8px;font-size:13px}
+.rt .sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rt .sub input{flex:1;min-width:110px}
+.rt td.nm{width:100%}
+.rt td.nu input{width:62px}
+.rt td.ag input{width:62px}
+.rt td.fl{text-align:center}
+.rt td.fl input{width:20px;height:20px}
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
 
 </style></head><body>
@@ -442,7 +455,7 @@ coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
 <p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
-<table><tr><th>Nom<th>N°<th>Âge<th>Fille<th>Groupe forcé<th>Groupe actuel<th></tr>${S.riders.map(r=>`<tr><td><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"><td><input list="gl" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><td>${esc(grp(r))}<td><button onclick="delR(${r.id})">✕</button>`).join('')}</table>`,
+<table class="rt"><tr><th>Nom<th>N°<th>Âge<th>Fille</tr>${S.riders.map(r=>`<tr class="r1"><td class="nm"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td class="nu"><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td class="ag"><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td class="fl"><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></tr><tr class="r2"><td colspan="4"><div class="sub"><span>Groupe : <b>${esc(grp(r))}</b></span><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><button onclick="delR(${r.id})" title="Supprimer">✕</button></div></tr>`).join('')}</table>`,
 groupes:()=>`<h2>Points par position</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:64px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
 <h2>Groupes d'âge</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
@@ -454,6 +467,8 @@ finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Géné
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
+
+
 const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
