@@ -558,8 +558,8 @@ tm=setTimeout(async()=>{const ts=new Date().toISOString();
   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
 
 async function loadList(){
- const{data:u}=await sb.auth.getUser();
- myEmail=(u&&u.user&&u.user.email||'').toLowerCase();
+ const{data:u}=await sb.auth.getSession();
+myEmail=(u&&u.session&&u.session.user&&u.session.user.email||'').toLowerCase();
  const{data}=await sb.from('courses').select('id,nom,owner_email').order('updated_at',{ascending:false});
  courses=data||[];
 }
