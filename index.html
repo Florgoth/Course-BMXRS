@@ -579,12 +579,18 @@ async function openC(id){
  }
 }
 
-async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
+async function newC(){
+ const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');
+ if(!nom)return;
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
  S=Object.assign(DEF(),{points:S.points,groups:S.groups});
- if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
- if(error)return alert(error.message);cid=data.id;await loadList()}
- tab='coureurs';save();render()}
+ if(sb){
+  const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
+  if(error)return alert(error.message);
+  cid=data.id;await loadList();
+ }
+ tab='coureurs';save();render();
+}
 
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
