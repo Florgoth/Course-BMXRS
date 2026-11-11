@@ -147,7 +147,8 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 <script>
 // ===== Configuration Neon (laisser vide = mode local, sans compte) =====
 // Console Neon > Auth : URL d'authentification. Console Neon > Data API : URL de l'API.
-const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
+const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', 
+NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
 let sb=null;
 
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
@@ -536,12 +537,18 @@ function render(){
  ? courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
  : '<option>(aucune course sauvegardée)</option>';
 
-  if(!canEdit()){
- document.querySelectorAll('#app input,#app select,#app textarea').forEach(e=>e.disabled=true);
- document.querySelectorAll('#app button:not(.keep)').forEach(b=>{if(!/Imprimer/.test(b.textContent))b.style.display='none'});
-}
-$('#rolebadge').textContent=sb&&user?({owner:'👑 Propriétaire',editor:'✏️ Éditeur',viewer:'👁 Lecteur'}[role]):'';
-['#bnew','#bren','#bdel'].forEach(s=>{const e=$(s);if(e)e.style.display=(!sb||role==='owner')?'':'none'});
+ // ===== LIGNE MANQUANTE : dessine le contenu principal =====
+ $('#app').innerHTML=locked
+  ? (authStep==='verify'?verificationV():loginV())
+  : (cid||!sb ? V[tab]() : '<p class="mut">Aucune course ouverte. Clique sur + pour en créer une.</p>');
+
+ // Mode lecture seule (après le dessin, sinon il n'y a rien à désactiver)
+ if(!locked&&!canEdit()){
+  document.querySelectorAll('#app input,#app select,#app textarea').forEach(e=>e.disabled=true);
+  document.querySelectorAll('#app button:not(.keep)').forEach(b=>{if(!/Imprimer/.test(b.textContent))b.style.display='none'});
+ }
+ $('#rolebadge').textContent=sb&&user?({owner:'👑 Propriétaire',editor:'✏️ Éditeur',viewer:'👁 Lecteur'}[role]||''):'';
+ ['#bnew','#bren','#bdel'].forEach(s=>{const e=$(s);if(e)e.style.display=(!sb||role==='owner')?'':'none'});
 }
 
 // ===== Sauvegarde (locale + Supabase) ===== SAVE********************************************************************************************
@@ -558,7 +565,13 @@ tm=setTimeout(async()=>{const ts=new Date().toISOString();
 
 async function loadList(){
  const{data,error}=await sb.from('courses').select('id,nom').order('updated_at',{ascending:false});
- if(error){stat('Erreur de chargement');alert(error.message);return}
+ if(error){
+  console.error('loadList',error);
+  stat('Session expirée ou erreur : '+error.message);
+  user=null;            // force l'écran de connexion
+  courses=[];
+  return;
+ }
  courses=data||[];
 }
 
@@ -803,6 +816,7 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
  sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
  const{data}=await sb.auth.getSession();
  user=data&&data.session?true:null;
+ if(user){await boot(); if(!user){/* loadList a invalidé la session */}}
 }catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}
 if(sb&&user){
  try{await boot()}
