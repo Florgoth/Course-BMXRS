@@ -138,7 +138,6 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 <span id="who" class="mut"></span>
 
 <span id="st" class="mut"></span>
-<span id="rolebadge" class="mut"></span>
 </header>
 
 <nav id="nav"></nav>
@@ -147,8 +146,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 <script>
 // ===== Configuration Neon (laisser vide = mode local, sans compte) =====
 // Console Neon > Auth : URL d'authentification. Console Neon > Data API : URL de l'API.
-const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', 
-NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
+const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
 let sb=null;
 
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
@@ -156,10 +154,6 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
-
-let myEmail='',role='owner',shares=[];
-const canEdit=()=>!sb||role==='owner'||role==='editor';
-
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
@@ -456,9 +450,6 @@ return`<tr>${gate}<td>${esc(r.num)}<td class="nm">${esc(r.nom)}<td><select data-
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
-  // __________________________________________
-  // ===== Vues HTML ===== OBJECT "V"
-  // __________________________________________
   const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
@@ -489,20 +480,12 @@ motos:()=>`<div class="row np mototabs"><button class="p" onclick="genMotos()">G
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><b>${esc(g)}</b><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
 finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
-partage:()=>{
- if(!sb)return'<p class="mut">Le partage demande une connexion Neon.</p>';
- if(role!=='owner')return'<p class="mut">Tu as accès à cette course en tant que <b>'+(role==='editor'?'éditeur':'lecteur')+'</b>. Seul le propriétaire peut gérer le partage.</p>';
- return`<div class="card"><h2>Partager cette course</h2>
- <p class="mut">Entre le courriel d'une personne qui a un compte. Éditeur = peut tout modifier. Lecteur = consulte seulement.</p>
- <div class="row"><input id="shem" type="email" placeholder="courriel@exemple.com"><select id="shrl"><option value="viewer">Lecteur</option><option value="editor">Éditeur</option></select><button class="p" onclick="addShare()">Inviter</button></div>
- <table><tr><th>Courriel<th>Rôle<th></tr>${shares.map(s=>`<tr><td>${esc(s.email)}<td><select onchange="setShare(${s.id},this.value)"><option value="viewer" ${s.role==='viewer'?'selected':''}>Lecteur</option><option value="editor" ${s.role==='editor'?'selected':''}>Éditeur</option></select><td><button onclick="delShare(${s.id})">✕</button>`).join('')||'<tr><td colspan="3" class="mut">Personne pour le moment.'}</table></div>`;
-},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
 
 
-const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums'],['partage','Partage']];
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
 
@@ -534,82 +517,38 @@ function render(){
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  $('#sel').style.display=sb&&user?'':'none';
  $('#sel').innerHTML=courses.length
- ? courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
- : '<option>(aucune course sauvegardée)</option>';
-
- // ===== LIGNE MANQUANTE : dessine le contenu principal =====
- $('#app').innerHTML=locked
-  ? (authStep==='verify'?verificationV():loginV())
-  : (cid||!sb ? V[tab]() : '<p class="mut">Aucune course ouverte. Clique sur + pour en créer une.</p>');
-
- // Mode lecture seule (après le dessin, sinon il n'y a rien à désactiver)
- if(!locked&&!canEdit()){
-  document.querySelectorAll('#app input,#app select,#app textarea').forEach(e=>e.disabled=true);
-  document.querySelectorAll('#app button:not(.keep)').forEach(b=>{if(!/Imprimer/.test(b.textContent))b.style.display='none'});
- }
- $('#rolebadge').textContent=sb&&user?({owner:'👑 Propriétaire',editor:'✏️ Éditeur',viewer:'👁 Lecteur'}[role]||''):'';
- ['#bnew','#bren','#bdel'].forEach(s=>{const e=$(s);if(e)e.style.display=(!sb||role==='owner')?'':'none'});
+  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleDateString('fr-CA'):''}</option>`).join('')
+  :'<option value="">(aucune course sauvegardée)</option>';
+ $('#app').innerHTML=locked?
+  (authStep==='verify'?verificationV():loginV())
+  :V[tab]();
 }
 
-// ===== Sauvegarde (locale + Supabase) ===== SAVE********************************************************************************************
+// ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
-let tm;
-function save(){
-  if(!canEdit())return;
-    localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+let tm;function save(){
+  localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
-tm=setTimeout(async()=>{
- const{error}=await sb.from('courses').update({data:S,updated_at:new Date().toISOString()}).eq('id',cid);
- stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé');
- if(!error){
-  const c=courses.find(x=>x.id===cid);
-  if(c){c.updated_at=new Date().toISOString();render();}
- }
-},600);
-}
+tm=setTimeout(async()=>{const ts=new Date().toISOString();
+  const{error}=await sb.from('courses').update({data:S,updated_at:ts}).eq('id',cid);
+  if(!error)lastSync=ts;
+  tm=null;
+  stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
 
 async function loadList(){
  const{data,error}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',{ascending:false});
- if(error){
-  console.error('loadList',error);
-  stat('Session expirée ou erreur : '+error.message);
-  user=null;            // force l'écran de connexion
-  courses=[];
-  return;
- }
- courses=data||[];
-}
+ if(error){stat('Erreur liste courses : '+error.message);console.error(error)}
+ courses=data||[]}
 
 async function openC(id){
-  const c = courses.find(c => c.id === id);
-const nom = c ? c.nom : '';
- const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
- if(error)return alert(error.message);
- cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id;
- // rôle: propriétaire, éditeur ou lecteur
- if(!data.owner_email||data.owner_email.toLowerCase()===myEmail){role='owner';shares=[]}
- else{
-  const{data:s}=await sb.from('course_shares').select('role').eq('course_id',id).eq('email',myEmail).maybeSingle();
-  role=s?s.role:'viewer';shares=[];
- }
- if(role==='owner'){
-  const{data:l}=await sb.from('course_shares').select('*').eq('course_id',id);
-  shares=l||[];
- }
-}
+  const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
 
-async function newC(){
- const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');
- if(!nom)return;
+async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
  S=Object.assign(DEF(),{points:S.points,groups:S.groups});
- if(sb){
-  const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();
-  if(error)return alert(error.message);
-  cid=data.id;await loadList();
- }
- tab='coureurs';save();render();
-}
+ if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
+ tab='coureurs';save();render()}
 
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
@@ -621,28 +560,7 @@ async function login(){
   authStep='login';
  }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
 
-
-async function addShare(){
- const em=$('#shem').value.trim().toLowerCase(),r=$('#shrl').value;
- if(!em.includes('@'))return alert('Courriel invalide.');
- if(em===myEmail)return alert("C'est ton propre compte.");
- const{error}=await sb.from('course_shares').upsert({course_id:cid,email:em,role:r},{onConflict:'course_id,email'});
- if(error)return alert(error.message);
- await openC(cid);render();
-}
-async function setShare(id,r){
- const{error}=await sb.from('course_shares').update({role:r}).eq('id',id);
- if(error)alert(error.message);
- await openC(cid);render();
-}
-async function delShare(id){
- if(!confirm('Retirer cet accès?'))return;
- await sb.from('course_shares').delete().eq('id',id);
- await openC(cid);render();
-}
-
 async function logout(){
-  
  if(!confirm('Se déconnecter?'))return;
  try{
   stat('Déconnexion…');
@@ -652,7 +570,6 @@ async function logout(){
  S=DEF();
  localStorage.removeItem('bmx_cid');
  localStorage.removeItem('bmx_S');
- role='owner';shares=[];myEmail='';
  authStep='login';
  tab='coureurs';
  stat('');
@@ -774,13 +691,9 @@ async function delC(){
  render()}
 
 
-async function boot(){
- await loadList();
- const id=localStorage.bmx_cid;
- if(courses.find(c=>c.id===id)) await openC(id);
- else if(courses[0]) await openC(courses[0].id);
- else { S=DEF(); cid=null; stat('Aucune course. Clique « Nouvelle course ».'); }
-}
+async function boot(){await loadList();const id=localStorage.bmx_cid;
+ if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
+ else await newC()}
 
 // ===== Rafraîchissement automatique =====
 let lastSync='';
@@ -816,18 +729,10 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
 
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
-  try{
- const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
- sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
- const{data}=await sb.auth.getSession();
- user=data&&data.session?true:null;
- if(user){await boot(); if(!user){/* loadList a invalidé la session */}}
-}catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}
-if(sb&&user){
- try{await boot()}
- catch(e){console.error(e);alert('Erreur au chargement : '+e.message+'\n'+(e.stack||''))}
-}}
-
+  try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
+   sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+   const{data}=await sb.auth.getSession();user=data&&data.session?true:null;if(user)await boot()}
+  catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}}
  if(!sb){try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
  render()})();
 </script></body></html>
