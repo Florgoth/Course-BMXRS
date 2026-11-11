@@ -535,7 +535,7 @@ function render(){
  $('#sel').innerHTML=courses.length
  ? courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
  : '<option>(aucune course sauvegardée)</option>';
- 
+
   if(!canEdit()){
  document.querySelectorAll('#app input,#app select,#app textarea').forEach(e=>e.disabled=true);
  document.querySelectorAll('#app button:not(.keep)').forEach(b=>{if(!/Imprimer/.test(b.textContent))b.style.display='none'});
@@ -557,8 +557,10 @@ tm=setTimeout(async()=>{const ts=new Date().toISOString();
   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
 
 async function loadList(){
- const{data}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',{ascending:false});
- courses=data||[]}
+ const{data,error}=await sb.from('courses').select('id,nom').order('updated_at',{ascending:false});
+ if(error){stat('Erreur de chargement');alert(error.message);return}
+ courses=data||[];
+}
 
 async function openC(id){
   const c = courses.find(c => c.id === id);
@@ -754,9 +756,13 @@ async function delC(){
  render()}
 
 
-async function boot(){await loadList();const id=localStorage.bmx_cid;
- if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
- else await newC()}
+async function boot(){
+ await loadList();
+ const id=localStorage.bmx_cid;
+ if(courses.find(c=>c.id===id)) await openC(id);
+ else if(courses[0]) await openC(courses[0].id);
+ else { S=DEF(); cid=null; stat('Aucune course. Clique « Nouvelle course ».'); }
+}
 
 // ===== Rafraîchissement automatique =====
 let lastSync='';
