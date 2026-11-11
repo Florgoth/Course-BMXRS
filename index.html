@@ -564,6 +564,8 @@ myEmail=(u&&u.session&&u.session.user&&u.session.user.email||'').toLowerCase();
  courses=data||[];
 }
 async function openC(id){
+  const c = courses.find(c => c.id === id);
+const nom = c ? c.nom : '';
  const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
  if(error)return alert(error.message);
  cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id;
