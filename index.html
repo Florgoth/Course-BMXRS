@@ -99,6 +99,9 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 .mototabs button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#ffffff;font-weight:800;box-shadow:0 0 0 3px rgba(255, 255, 255, 0.35)}
 .mototitle{margin:10px 0 4px;font-size:22px;font-weight:800;color:var(--pk);letter-spacing:.5px}
 
+#importPreview{max-height:400px;overflow:auto}
+#importPreview thead th{position:sticky;top:0;background:#fff}
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
 
 </style></head><body>
@@ -367,11 +370,12 @@ function previewImport(){
 
  $('#importPreview').innerHTML=
   '<h3>Aperçu</h3>'+
-  '<p><b>'+valid.length+'</b> valides · <b>'+invalid+'</b> ignorées</p>'+
+  '<p><b>'+valid.length+'</b> valides · <b>'+invalid+'</b> ignorées · '+rows.length+' lignes au total</p>'+
   '<div class="pv"><table>'+
-  '<tr><th>Nom</th><th>N°</th><th>Âge</th><th>F</th><th></th></tr>'+
-  rows.slice(0,15).map(r=>
-   '<tr>'+
+  '<thead><tr><th>Nom</th><th>N°</th><th>Âge</th><th>F</th><th></th></tr></thead>'+
+  '<tbody>'+
+  rows.map(r=>
+   '<tr'+(validImportRow(r)?'':' style="opacity:.55"')+'>'+
    '<td>'+esc(importValue(r,'nom'))+'</td>'+
    '<td>'+esc(importValue(r,'num'))+'</td>'+
    '<td>'+esc(importValue(r,'age'))+'</td>'+
@@ -379,8 +383,7 @@ function previewImport(){
    '<td>'+(validImportRow(r)?'✓':'⚠️')+'</td>'+
    '</tr>'
   ).join('')+
-  '</table></div>'+
-  (rows.length>15?'<p class="mut">15 premières lignes affichées.</p>':'');
+  '</tbody></table></div>';
 
  $('#importBtn').disabled=valid.length===0;
  $('#importBtn').textContent='Importer '+valid.length+' coureurs';
