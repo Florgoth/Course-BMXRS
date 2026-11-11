@@ -545,11 +545,34 @@ async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
   if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
 
-async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
- if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
- S=Object.assign(DEF(),{points:S.points,groups:S.groups});
- if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
- tab='coureurs';save();render()}
+let creating=false;
+async function newC(){
+ if(creating)return;
+ creating=true;
+ try{
+  const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');
+  if(!nom||!nom.trim())return;
+  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
+  const nouveau=Object.assign(DEF(),{points:S.points,groups:S.groups});
+  if(sb){
+   const{data,error}=await sb.from('courses').insert({nom:nom.trim(),data:nouveau}).select().single();
+   if(error){
+    return alert(error.code==='23505'
+     ?'Une course porte déjà ce nom'
+     :'Erreur : '+error.message);
+   }
+   cid=data.id;
+   localStorage.bmx_cid=cid;
+   await loadList();
+  }
+  S=nouveau;
+  tab='coureurs';
+  save();
+  render();
+ }finally{
+  creating=false;
+ }
+}
 
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
@@ -692,9 +715,20 @@ async function delC(){
  render()}
 
 
-async function boot(){await loadList();const id=localStorage.bmx_cid;
- if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
- else await newC()}
+let booting=false;
+async function boot(){
+ if(booting)return;
+ booting=true;
+ try{
+  await loadList();
+  const id=localStorage.bmx_cid;
+  if(courses.find(c=>c.id===id))await openC(id);
+  else if(courses[0])await openC(courses[0].id);
+  else await newC();
+ }finally{
+  booting=false;
+ }
+}
 
 // ===== Rafraîchissement automatique =====
 let lastSync='';
@@ -730,10 +764,18 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
 
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
-  try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
+  try{
+   const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
-   const{data}=await sb.auth.getSession();user=data&&data.session?true:null;if(user)await boot()}
-  catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}}
- if(!sb){try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
- render()})();
+   const{data}=await sb.auth.getSession();
+   user=data&&data.session?true:null;
+   if(user)await boot();
+  }catch(e){
+   sb=null;
+   alert('Connexion à Neon impossible : '+e.message);
+  }
+ }
+ render();
+})();
+
 </script></body></html>
