@@ -138,6 +138,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 <span id="who" class="mut"></span>
 
 <span id="st" class="mut"></span>
+<span id="rolebadge" class="mut"></span>
 </header>
 
 <nav id="nav"></nav>
@@ -154,6 +155,10 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+
+let myEmail='',role='owner',shares=[];
+const canEdit=()=>!sb||role==='owner'||role==='editor';
+
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
@@ -450,6 +455,9 @@ return`<tr>${gate}<td>${esc(r.num)}<td class="nm">${esc(r.nom)}<td><select data-
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
+  // __________________________________________
+  // ===== Vues HTML ===== OBJECT "V"
+  // __________________________________________
   const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
@@ -480,12 +488,20 @@ motos:()=>`<div class="row np mototabs"><button class="p" onclick="genMotos()">G
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><b>${esc(g)}</b><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
 finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+partage:()=>{
+ if(!sb)return'<p class="mut">Le partage demande une connexion Neon.</p>';
+ if(role!=='owner')return'<p class="mut">Tu as accès à cette course en tant que <b>'+(role==='editor'?'éditeur':'lecteur')+'</b>. Seul le propriétaire peut gérer le partage.</p>';
+ return`<div class="card"><h2>Partager cette course</h2>
+ <p class="mut">Entre le courriel d'une personne qui a un compte. Éditeur = peut tout modifier. Lecteur = consulte seulement.</p>
+ <div class="row"><input id="shem" type="email" placeholder="courriel@exemple.com"><select id="shrl"><option value="viewer">Lecteur</option><option value="editor">Éditeur</option></select><button class="p" onclick="addShare()">Inviter</button></div>
+ <table><tr><th>Courriel<th>Rôle<th></tr>${shares.map(s=>`<tr><td>${esc(s.email)}<td><select onchange="setShare(${s.id},this.value)"><option value="viewer" ${s.role==='viewer'?'selected':''}>Lecteur</option><option value="editor" ${s.role==='editor'?'selected':''}>Éditeur</option></select><td><button onclick="delShare(${s.id})">✕</button>`).join('')||'<tr><td colspan="3" class="mut">Personne pour le moment.'}</table></div>`;
+},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
 
 
-const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums'],['partage','Partage']];
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
 
@@ -519,15 +535,21 @@ function render(){
  $('#sel').innerHTML=courses.length
   ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleDateString('fr-CA'):''}</option>`).join('')
   :'<option value="">(aucune course sauvegardée)</option>';
- $('#app').innerHTML=locked?
-  (authStep==='verify'?verificationV():loginV())
-  :V[tab]();
+ $('#app').innerHTML=(sb&&user&&role==='viewer'?'<p class="card" style="border-left-color:var(--ye)">👁 Mode lecteur: tu consultes cette course, les changements ne sont pas sauvegardés.</p>':'')+(locked?(authStep==='verify'?verificationV():loginV()):V[tab]());
+
+  if(!canEdit()){
+ document.querySelectorAll('#app input,#app select,#app textarea').forEach(e=>e.disabled=true);
+ document.querySelectorAll('#app button:not(.keep)').forEach(b=>{if(!/Imprimer/.test(b.textContent))b.style.display='none'});
+}
+$('#rolebadge').textContent=sb&&user?({owner:'👑 Propriétaire',editor:'✏️ Éditeur',viewer:'👁 Lecteur'}[role]):'';
+['#bnew','#bren','#bdel'].forEach(s=>{const e=$(s);if(e)e.style.display=(!sb||role==='owner')?'':'none'});
 }
 
-// ===== Sauvegarde (locale + Supabase) =====
+// ===== Sauvegarde (locale + Supabase) ===== SAVE********************************************************************************************
 const stat=t=>$('#st').textContent=t;
 let tm;function save(){
-  localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+  if(!canEdit())return;
+    localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
 tm=setTimeout(async()=>{const ts=new Date().toISOString();
   const{error}=await sb.from('courses').update({data:S,updated_at:ts}).eq('id',cid);
@@ -536,18 +558,32 @@ tm=setTimeout(async()=>{const ts=new Date().toISOString();
   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
 
 async function loadList(){
- const{data,error}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',{ascending:false});
- if(error){stat('Erreur liste courses : '+error.message);console.error(error)}
- courses=data||[]}
-
+ const{data:u}=await sb.auth.getUser();
+ myEmail=(u&&u.user&&u.user.email||'').toLowerCase();
+ const{data}=await sb.from('courses').select('id,nom,owner_email').order('updated_at',{ascending:false});
+ courses=data||[];
+}
 async function openC(id){
-  const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+ const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
+ if(error)return alert(error.message);
+ cid=id;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id;
+ // rôle: propriétaire, éditeur ou lecteur
+ if(!data.owner_email||data.owner_email.toLowerCase()===myEmail){role='owner';shares=[]}
+ else{
+  const{data:s}=await sb.from('course_shares').select('role').eq('course_id',id).eq('email',myEmail).maybeSingle();
+  role=s?s.role:'viewer';shares=[];
+ }
+ if(role==='owner'){
+  const{data:l}=await sb.from('course_shares').select('*').eq('course_id',id);
+  shares=l||[];
+ }
+}
 
 async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
  S=Object.assign(DEF(),{points:S.points,groups:S.groups});
- if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert(error.message);cid=data.id;await loadList()}
+ if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
+ if(error)return alert(error.message);cid=data.id;await loadList()}
  tab='coureurs';save();render()}
 
 async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
@@ -560,7 +596,28 @@ async function login(){
   authStep='login';
  }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
 
+
+async function addShare(){
+ const em=$('#shem').value.trim().toLowerCase(),r=$('#shrl').value;
+ if(!em.includes('@'))return alert('Courriel invalide.');
+ if(em===myEmail)return alert("C'est ton propre compte.");
+ const{error}=await sb.from('course_shares').upsert({course_id:cid,email:em,role:r},{onConflict:'course_id,email'});
+ if(error)return alert(error.message);
+ await openC(cid);render();
+}
+async function setShare(id,r){
+ const{error}=await sb.from('course_shares').update({role:r}).eq('id',id);
+ if(error)alert(error.message);
+ await openC(cid);render();
+}
+async function delShare(id){
+ if(!confirm('Retirer cet accès?'))return;
+ await sb.from('course_shares').delete().eq('id',id);
+ await openC(cid);render();
+}
+
 async function logout(){
+  
  if(!confirm('Se déconnecter?'))return;
  try{
   stat('Déconnexion…');
@@ -570,6 +627,7 @@ async function logout(){
  S=DEF();
  localStorage.removeItem('bmx_cid');
  localStorage.removeItem('bmx_S');
+ role='owner';shares=[];myEmail='';
  authStep='login';
  tab='coureurs';
  stat('');
