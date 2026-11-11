@@ -585,7 +585,7 @@ async function newC(){
  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
  S=Object.assign(DEF(),{points:S.points,groups:S.groups});
  if(sb){
-  const{data,error}=await sb.from('courses').insert({nom,data:S,owner_email:myEmail}).select().single();
+  const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();
   if(error)return alert(error.message);
   cid=data.id;await loadList();
  }
@@ -793,10 +793,17 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
 
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
-  try{const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
-   sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
-   const{data}=await sb.auth.getSession();user=data&&data.session?true:null;if(user)await boot()}
-  catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}}
+  try{
+ const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
+ sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+ const{data}=await sb.auth.getSession();
+ user=data&&data.session?true:null;
+}catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}
+if(sb&&user){
+ try{await boot()}
+ catch(e){console.error(e);alert('Erreur au chargement : '+e.message+'\n'+(e.stack||''))}
+}}
+
  if(!sb){try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
  render()})();
 </script></body></html>
