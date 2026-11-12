@@ -47,7 +47,7 @@ select.dup{border-color:#f44;background:#5a1d1d}
 
 .gn{display:block;font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:24px;letter-spacing:1px;line-height:1.1;color:var(--pk);text-transform:uppercase;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .gn small{font-family:system-ui,sans-serif;font-size:13px;letter-spacing:0;color:var(--mut);text-transform:none;margin-left:6px}
-@media print{.gn{color:#000;border-bottom-color:#000}}
+
 
 table.rt{table-layout:fixed;width:100%}
 table.rt th,table.rt td{padding:3px 3px;overflow:hidden}
@@ -115,7 +115,11 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 #importPreview{max-height:400px;overflow:auto}
 #importPreview thead th{position:sticky;top:0;background:#fff}
 
+.mb{background:var(--pk);border-color:var(--pk);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.mb.on{background:var(--ye);border-color:var(--ye);color:#111}
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
+@media print{.gn{color:#000;border-bottom-color:#000}}
 
 </style></head><body>
 
@@ -492,7 +496,7 @@ groupes:()=>`<h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,
 <h2>- GROUPES D'ÂGES -</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p>`,
-motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div><h2>Moto ${mt}</h2>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
+motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
 finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
