@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#161719"/>
+  <text x="8" y="26" textLength="48" lengthAdjust="spacingAndGlyphs"
+        font-family="Arial Black,Impact,Arial,sans-serif" font-size="20" font-weight="900" fill="#ffffff">BMX</text>
+  <rect x="8" y="42" width="16" height="14" fill="#b0b6bd"/>
+  <rect x="24" y="34" width="16" height="22" fill="#ffc107"/>
+  <rect x="40" y="46" width="16" height="10" fill="#c77d3a"/>
+  <g font-family="Arial Black,Impact,Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle" fill="#161719">
+    <text x="16" y="52">2</text>
+    <text x="32" y="46">1</text>
+    <text x="48" y="54">3</text>
+  </g>
+  <rect x="8" y="56" width="48" height="2" fill="#c2185b"/>
+</svg>
