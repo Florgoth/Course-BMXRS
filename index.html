@@ -64,12 +64,18 @@ table.rt th:nth-child(6),table.rt td:nth-child(6){width:34px}
 
 .compact table{width:auto;table-layout:auto}.compact th,.compact td{white-space:nowrap;padding:4px 7px}.compact td input:not([type=checkbox]){width:auto;min-width:0;padding:4px 5px}.compact td input[type=text]{width:120px}.compact td input[type=number]{width:58px}.compact td input[type=checkbox]{width:18px;height:18px}
 .riders{table-layout:auto}.riders th,.riders td{padding:4px 5px;vertical-align:middle}.riders td input:not([type=checkbox]){min-width:0}.riders .r-name{width:100%}.riders .r-name input{width:100%;min-width:150px}.riders .r-num{width:78px}.riders .r-age{width:60px}.riders .r-gp{white-space:nowrap}.riders .r-force{width:150px}.riders .r-force input{width:140px!important}
+.compact>.row label{min-width:88px}.compact>.row input[type=number]{width:60px!important}
+.age-groups{table-layout:fixed;width:100%}.age-groups th:first-child,.age-groups td:first-child{width:38%}.age-groups th:nth-child(2),.age-groups td:nth-child(2),.age-groups th:nth-child(3),.age-groups td:nth-child(3){width:20%}.age-groups th:nth-child(4),.age-groups td:nth-child(4){width:14%}.age-groups th:last-child,.age-groups td:last-child{width:8%}.age-groups input:not([type=checkbox]){min-width:0!important;width:100%!important}
 td.nom{word-break:break-word;font-size:14px}
 select.gate,select.ps{padding:2px 0;width:100%;min-width:0;text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none}
 select.gate{font-weight:700}
 @media (max-width:600px){
  .card{padding:8px}
  table.rt th,table.rt td{font-size:13px;padding:3px 2px}
+}
+
+@media(max-width:600px){
+ body{overflow-x:hidden}main{padding:10px;min-width:0}.riders{display:block;width:100%;table-layout:fixed}.riders thead{display:none}.riders tbody{display:block;width:100%}.riders tbody tr{display:grid;grid-template-columns:68px minmax(0,1fr) 68px 42px;gap:4px 6px;padding:8px 2px;border-bottom:1px solid var(--line)}.riders tbody td{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;min-width:0;width:auto!important;padding:2px!important;white-space:normal!important;overflow-wrap:anywhere;text-align:left}.riders tbody td::before{content:attr(data-label);display:block;color:var(--mut);font-size:10px;line-height:1.1;flex:0 0 auto}.riders .r-sex{align-items:center!important}.riders .r-name{grid-row:1;grid-column:1/3}.riders .r-num{grid-row:1;grid-column:3}.riders .r-sex{grid-row:1;grid-column:4;justify-content:center}.riders .r-age{grid-row:2;grid-column:1}.riders .r-gp{grid-row:2;grid-column:2;word-break:break-word}.riders .r-force{grid-row:2;grid-column:3}.riders .r-delete{grid-row:2;grid-column:4;justify-content:center}.riders .r-name input,.riders .r-force input{min-width:0!important;width:100%!important}.riders .r-num input{width:100%!important;min-width:0!important}.riders .r-sex input{width:18px;height:18px;margin:0}.age-groups th:first-child,.age-groups td:first-child{width:28%}.age-groups th:nth-child(2),.age-groups td:nth-child(2),.age-groups th:nth-child(3),.age-groups td:nth-child(3){width:21%}.age-groups th:nth-child(4),.age-groups td:nth-child(4){width:17%}.age-groups th:last-child,.age-groups td:last-child{width:13%}.age-groups td:first-child input{white-space:normal;overflow-wrap:anywhere}
 }
 
 details.imp{margin:10px 0}
@@ -209,50 +215,72 @@ function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r
  S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
  return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
 
-function genDemis(){
- if(!S.races.some(x=>x.ph<=3))return alert("Génère d'abord les 3 motos.");
- if(S.races.some(x=>x.ph>3&&x.rows.some(w=>w.pos))&&!confirm('Les résultats des demis et finales seront effacés. Continuer?'))return;
- S.races=S.races.filter(x=>x.ph<=3);const warn=[];
- gnames().forEach(g=>{const rk=rank(g).map(o=>o.r.id),n=rk.length;
-if(n<=8)return mk('F',g,'Finale A',rk,true);
-  let t=rk;if(n>16){t=rk.slice(0,16);warn.push(g+' ('+n+')')}
-  const d=[[],[]];t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
-  d.forEach((ids,k)=>mk('D',g,'Demi '+(k+1),ids))});
- if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
- tab='demis';save();render()}
-
-// Les finales sont dérivées des motos (≤8) ou des demis (>8).
-// La réconciliation conserve les portes choisies; les résultats ne survivent
-// à une modification du tableau que si ses participants et son ordre sont inchangés.
-function auto(){
- const desired=[];
- for(const g of gnames()){
-  const riders=S.riders.filter(r=>grp(r)===g);
-  if(!riders.length||!S.races.some(x=>x.ph<=3&&x.g===g))continue;
-  const demi=S.races.filter(x=>x.ph==='D'&&x.g===g);
-  if(demi.length){
-   const rk=rank(g).map(o=>o.r.id),sc={};
-   demi.forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
-   const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
-   if(ids.length)desired.push({g,label:'Finale A',ids:ids.slice(0,8)});
-   if(ids.length>8)desired.push({g,label:'Finale B',ids:ids.slice(8)});
-  }else if(riders.length<=8){
-   desired.push({g,label:'Finale A',ids:rank(g).map(o=>o.r.id)});
-  }
+// Vérifie qu'une position est saisie pour chaque coureur sur chacune des 3 motos.
+function motosCompletes(g){
+ const ids=S.riders.filter(r=>grp(r)===g).map(r=>r.id), wanted=new Set(ids);
+ if(!ids.length)return false;
+ for(let ph=1;ph<=3;ph++){
+  const races=S.races.filter(x=>x.ph===ph&&x.g===g), rows=races.flatMap(x=>x.rows);
+  if(!races.length||rows.length!==wanted.size||new Set(rows.map(w=>w.rid)).size!==wanted.size||
+     rows.some(w=>!wanted.has(w.rid)||w.pos===''))return false;
  }
- const old=S.races.filter(x=>x.ph==='F'), byKey=new Map(old.map(x=>[x.g+'\u0000'+x.label,x]));
- const next=desired.map(d=>{
-  const prev=byKey.get(d.g+'\u0000'+d.label);
+ return true;
+}
+
+// Les demis et finales sont dérivés des résultats; les portes existantes sont conservées.
+function auto(){
+ const wantedDemis=[];
+ for(const g of gnames()){
+  const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+  if(n<=8||!motosCompletes(g))continue;
+  let ids=rank(g).map(o=>o.r.id);
+  if(n>16)ids=ids.slice(0,16);
+  const d=[[],[]];ids.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
+  d.forEach((rows,k)=>wantedDemis.push({g,label:'Demi '+(k+1),ids:rows}));
+ }
+ const oldD=S.races.filter(x=>x.ph==='D');
+ const byD=new Map(oldD.map(x=>[x.g+'\u0000'+x.label,x]));
+ const nextD=wantedDemis.map(d=>{
+  const prev=byD.get(d.g+'\u0000'+d.label);
+  const same=prev&&prev.rows.length===d.ids.length&&prev.rows.every((w,i)=>w.rid===d.ids[i]);
+  const gates=new Map((prev?.rows||[]).map(w=>[w.rid,w.gate]));
+  const gt=shuf([1,2,3,4,5,6,7,8]);
+  return {id:prev?.id??S.uid++,ph:'D',g:d.g,label:d.label,pick:false,
+   rows:d.ids.map((rid,i)=>({rid,gate:gates.has(rid)?gates.get(rid):gt[i],pos:same?prev.rows[i].pos:''}))};
+ });
+ const demiChanged=oldD.length!==nextD.length||oldD.some((x,i)=>{
+  const y=nextD[i];return !y||x.id!==y.id||x.g!==y.g||x.label!==y.label||x.rows.length!==y.rows.length||
+   x.rows.some((w,j)=>w.rid!==y.rows[j].rid||w.gate!==y.rows[j].gate||w.pos!==y.rows[j].pos);
+ });
+ if(demiChanged){S.races=S.races.filter(x=>x.ph!=='D'&&x.ph!=='F').concat(nextD);}
+
+ const desiredF=[];
+ for(const g of gnames()){
+  const riders=S.riders.filter(r=>grp(r)===g),n=riders.length;
+  if(!riders.length||!motosCompletes(g))continue;
+  if(n<=8){desiredF.push({g,label:'Finale A',ids:rank(g).map(o=>o.r.id)});continue;}
+  const ds=S.races.filter(x=>x.ph==='D'&&x.g===g);
+  if(ds.length!==2||ds.some(x=>!x.rows.length||x.rows.some(w=>w.pos==='')))continue;
+  const motoRank=rank(g).map(o=>o.r.id), scores={};
+  ds.forEach(x=>x.rows.forEach(w=>scores[w.rid]=(scores[w.rid]||0)+pts(+w.pos)));
+  const ids=Object.keys(scores).map(Number).sort((a,b)=>scores[b]-scores[a]||motoRank.indexOf(a)-motoRank.indexOf(b));
+  if(ids.length)desiredF.push({g,label:'Finale A',ids:ids.slice(0,8)});
+  if(ids.length>8)desiredF.push({g,label:'Finale B',ids:ids.slice(8)});
+ }
+ const oldF=S.races.filter(x=>x.ph==='F'),byF=new Map(oldF.map(x=>[x.g+'\u0000'+x.label,x]));
+ const nextF=desiredF.map(d=>{
+  const prev=byF.get(d.g+'\u0000'+d.label);
   const same=prev&&prev.rows.length===d.ids.length&&prev.rows.every((w,i)=>w.rid===d.ids[i]);
   const gates=new Map((prev?.rows||[]).map(w=>[w.rid,w.gate]));
   return {id:prev?.id??S.uid++,ph:'F',g:d.g,label:d.label,pick:true,
    rows:d.ids.map((rid,i)=>({rid,gate:gates.has(rid)?gates.get(rid):'',pos:same?prev.rows[i].pos:''}))};
  });
- const unchanged=old.length===next.length&&old.every((x,i)=>{
-  const y=next[i];return x.id===y.id&&x.g===y.g&&x.label===y.label&&x.pick===y.pick&&x.rows.length===y.rows.length&&
-   x.rows.every((w,j)=>w.rid===y.rows[j].rid&&w.gate===y.rows[j].gate&&w.pos===y.rows[j].pos);
+ const finalsChanged=oldF.length!==nextF.length||oldF.some((x,i)=>{
+  const y=nextF[i];return !y||x.id!==y.id||x.g!==y.g||x.label!==y.label||x.pick!==y.pick||x.rows.length!==y.rows.length||
+   x.rows.some((w,j)=>w.rid!==y.rows[j].rid||w.gate!==y.rows[j].gate||w.pos!==y.rows[j].pos);
  });
- if(!unchanged){S.races=S.races.filter(x=>x.ph!=='F').concat(next);save()}
+ if(finalsChanged){S.races=S.races.filter(x=>x.ph!=='F').concat(nextF);}
+ if(demiChanged||finalsChanged)save();
 }
 
 function setPos(xid,rid,el){
@@ -525,14 +553,14 @@ coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
 <p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
-<table class="riders"><thead><tr><th>Nom</th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${S.riders.map(r=>`<tr><td class="r-name"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp">${esc(grp(r))}</td><td class="r-force"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
+<table class="riders"><thead><tr><th>Nom</th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${S.riders.map(r=>`<tr><td class="r-name" data-label="Nom"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num" data-label="N°"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age" data-label="Âge"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td class="r-sex" data-label="Fille"><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp" data-label="Groupe actuel">${esc(grp(r))}</td><td class="r-force" data-label="Groupe forcé"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td class="r-delete"><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
 groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:48px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
-<h2>- GROUPES D'ÂGES -</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
+<h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
-motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
+motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
-demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
+demis:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><p class="mut">Les demis se créent automatiquement dès que les résultats des 3 motos sont saisis pour chaque coureur du groupe.</p>`+grid(x=>x.ph==='D','Aucun demi : complète les positions des 3 motos pour les groupes de plus de 8 coureurs.'),
 finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
