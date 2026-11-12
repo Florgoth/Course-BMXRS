@@ -482,35 +482,32 @@ return`<tr>${gate}<td>${esc(r.num)}<td class="nm">${esc(r.nom)}<td><select data-
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
   const V={
-coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
+coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div></div>
 
-<details class="imp"><summary><h2>📥 Importer des coureurs (CSV / Excel)</h2></summary>
-<div class="box">
-<input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])">
-<div id="importInfo" class="mut" style="font-size:13px;margin-top:6px">Aucun fichier sélectionné.</div>
+<div class="card np" style="margin:15px 0;border-left-color:var(--or)">
+<h2>IMPORTER DES COUREURS</h2>
+<p>Formats acceptés : CSV, XLS, XLSX</p>
+<div class="row"><input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])"></div>
+<div id="importInfo" class="mut">Aucun fichier sélectionné.</div>
 <div id="importMapping"></div>
 <div id="importPreview"></div>
-<div class="row">
-<button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button>
-<button onclick="cancelImport()">Annuler</button>
-</div>
+<div class="row"><button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button><button onclick="cancelImport()">Annuler</button></div>
 <div id="importResult"></div>
 </div>
-</details>
-
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
-<p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
-<div>${S.riders.map(r=>`<div class="rider"><div class="l1"><label class="f">Nom<input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></label><label class="f">N°<input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></label><label class="f">Âge<input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></label><label class="f c">Fille<input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></label></div><div class="l2"><span>Groupe : <b>${esc(grp(r))}</b></span><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><button onclick="delR(${r.id})" title="Supprimer">✕</button></div></div>`).join('')}</div>`,
+<p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge.</p>
+<table><tr><th>Nom<th>N°<th>Âge<th>Fille<th>Groupe forcé<th>Groupe actuel<th></tr>${S.riders.map(r=>`<tr><td><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"><td><input list="gl" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><td>${esc(grp(r))}<td><button onclick="delR(${r.id})">✕</button>`).join('')}</table>`,
+
 groupes:()=>`<h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:64px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
 <h2>- GROUPES D'ÂGES -</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);auto();save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});auto();save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p>`,
-//motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick("print()">Imprimer</button></div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
+motos:()=>`<div class="row np">${[1,2,3].map(m=>`<button class="${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph===mt,'Aucune moto: ajoute des coureurs dans l\'onglet Coureurs.'),
 class:()=>`<div class("row np"><button onclick("print()">Imprimer</button></div><div class("grid")>${gnames().map(g=>`<div class("card")><span class("gn")>${esc(g)}</span><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class("mut")>${o.s}`).join('')}</table></div>`).join('')}</div>`,
-//demis:()=>`<div class("row np")><button class("p") onclick("genDemis()">Générer demis (et finales directes)</button><button onclick("print()">Imprimer</button></div><p class("mut")>9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
-//finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+demis:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><p class="mut">Les demis apparaissent quand les 3 motos sont complètes (9 à 16 coureurs). 8 et moins : finale directe.</p>`+grid(x=>x.ph==='D','Aucune demi pour le moment.'),
+finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale pour le moment.'),
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
@@ -543,6 +540,8 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
+
+ if(typeof V[tab]!=='function')tab='coureurs';
  const locked=sb&&!user;
  $('#lo').style.display=sb&&user?'':'none';
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
