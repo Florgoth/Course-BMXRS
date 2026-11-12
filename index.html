@@ -37,7 +37,7 @@ td input[type=number]{width:70px}
 .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pk);border-radius:8px;padding:10px 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
 .plate{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--ye);color:#111;font-weight:800}
-.plate.plate-letter{background:#2e7d32;color:#fff}.plate.plate-girl{background:#1976d2;color:#fff}.plate-input{width:68px!important;min-width:0!important;padding:3px 5px!important}
+.plate.plate-girl{background:#1976d2;color:#fff}.plate.plate-letter{background:#2e7d32;color:#fff}.plate-input{width:68px!important;min-width:0!important;padding:3px 5px!important}
 .gate-badge{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--pk);color:#fff;font-weight:800}
 .mut{color:var(--mut)}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
@@ -183,8 +183,8 @@ let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
-// Priorité des couleurs de plaque : fille (bleu) avant numéro contenant une lettre (vert).
-const plateClass=r=>`plate ${r&&r.f?'plate-girl':(/[a-z]/i.test(String(r&&r.num||''))?'plate-letter':'')}`;
+// Priorité des couleurs de plaque : numéro contenant une lettre (vert), puis fille (bleu), sinon jaune.
+const plateClass=r=>`plate ${/[a-z]/i.test(String(r&&r.num||''))?'plate-letter':(r&&r.f?'plate-girl':'')}`;
 const plateHtml=r=>`<span class="${plateClass(r)}">${esc(r&&r.num||'')}</span>`;
 const grp=r=>r.go||(S.groups.find(g=>!!g.f===!!r.f&&r.age>=g.min&&r.age<=g.max)||{}).n||'NON DÉFINI';
 const gnames=()=>{const used=new Set(S.riders.map(grp));
@@ -221,15 +221,39 @@ if(n<=8)return mk('F',g,'Finale A',rk,true);
  if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
  tab='demis';save();render()}
 
-function genFinales(){
- const gs=[...new Set(S.races.filter(x=>x.ph==='D').map(x=>x.g))];
- if(!gs.length)return alert('Aucun demi à traiter.');
- S.races=S.races.filter(x=>!(x.ph==='F'&&gs.includes(x.g)));
- gs.forEach(g=>{const rk=rank(g).map(o=>o.r.id),sc={};
-  S.races.filter(x=>x.ph==='D'&&x.g===g).forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
-  const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
-mk('F',g,'Finale A',ids.slice(0,8),true);if(ids.length>8)mk('F',g,'Finale B',ids.slice(8),true)});
- tab='finales';save();render()}
+// Les finales sont dérivées des motos (≤8) ou des demis (>8).
+// La réconciliation conserve les portes choisies; les résultats ne survivent
+// à une modification du tableau que si ses participants et son ordre sont inchangés.
+function auto(){
+ const desired=[];
+ for(const g of gnames()){
+  const riders=S.riders.filter(r=>grp(r)===g);
+  if(!riders.length||!S.races.some(x=>x.ph<=3&&x.g===g))continue;
+  const demi=S.races.filter(x=>x.ph==='D'&&x.g===g);
+  if(demi.length){
+   const rk=rank(g).map(o=>o.r.id),sc={};
+   demi.forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
+   const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
+   if(ids.length)desired.push({g,label:'Finale A',ids:ids.slice(0,8)});
+   if(ids.length>8)desired.push({g,label:'Finale B',ids:ids.slice(8)});
+  }else if(riders.length<=8){
+   desired.push({g,label:'Finale A',ids:rank(g).map(o=>o.r.id)});
+  }
+ }
+ const old=S.races.filter(x=>x.ph==='F'), byKey=new Map(old.map(x=>[x.g+'\u0000'+x.label,x]));
+ const next=desired.map(d=>{
+  const prev=byKey.get(d.g+'\u0000'+d.label);
+  const same=prev&&prev.rows.length===d.ids.length&&prev.rows.every((w,i)=>w.rid===d.ids[i]);
+  const gates=new Map((prev?.rows||[]).map(w=>[w.rid,w.gate]));
+  return {id:prev?.id??S.uid++,ph:'F',g:d.g,label:d.label,pick:true,
+   rows:d.ids.map((rid,i)=>({rid,gate:gates.has(rid)?gates.get(rid):'',pos:same?prev.rows[i].pos:''}))};
+ });
+ const unchanged=old.length===next.length&&old.every((x,i)=>{
+  const y=next[i];return x.id===y.id&&x.g===y.g&&x.label===y.label&&x.pick===y.pick&&x.rows.length===y.rows.length&&
+   x.rows.every((w,j)=>w.rid===y.rows[j].rid&&w.gate===y.rows[j].gate&&w.pos===y.rows[j].pos);
+ });
+ if(!unchanged){S.races=S.races.filter(x=>x.ph!=='F').concat(next);save()}
+}
 
 function setPos(xid,rid,el){
  const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
@@ -245,7 +269,7 @@ function setPos(xid,rid,el){
  const ins=document.querySelectorAll('select[data-x="'+xid+'"]'),c={};
  x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
  ins.forEach(i=>i.classList.toggle('dup',!!i.value&&+i.value>0&&c[+i.value]>1));
- save();
+ save();auto();render();
 }
 
 function setGate(xid,rid,el){
@@ -509,7 +533,7 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
-finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
@@ -543,6 +567,7 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
  const locked=sb&&!user;
+ if(!locked)auto();
  $('#lo').style.display=sb&&user?'':'none';
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  $('#sel').style.display=sb&&user?'':'none';
