@@ -25,6 +25,7 @@ button.ico{background:none;border-color:transparent;color:var(--mut);padding:6px
 button.ico:hover{color:var(--or);border-color:transparent}
 button.ico svg{display:block}
 button.ico.del:hover{color:#f44}
+button.del:hover,button[title="Supprimer"]:hover{color:#f44!important;border-color:#f44!important}
 header button{min-width:40px;font-size:18px;line-height:1;padding:6px 8px}
 :focus-visible{outline:2px solid var(--ye);outline-offset:1px}
 main{padding:14px;max-width:1150px;margin:auto}
@@ -36,9 +37,11 @@ td input[type=number]{width:70px}
 .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pk);border-radius:8px;padding:10px 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
 .plate{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--ye);color:#111;font-weight:800}
+.plate.plate-letter{background:#2e7d32;color:#fff}.plate.plate-girl{background:#1976d2;color:#fff}.plate-input{width:68px!important;min-width:0!important;padding:3px 5px!important}
+.gate-badge{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--pk);color:#fff;font-weight:800}
 .mut{color:var(--mut)}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
-select.gate{background:var(--ye);color:#111;border-color:var(--ye);font-weight:800;text-align:center;min-width:56px}
+select.gate{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:800;text-align:center;min-width:56px}
 select.gate option{background:#fff;color:#111}
 select.gate option:disabled{color:#aaa}
 select.gate.vide{background:#34373c;color:var(--mut);border-color:var(--line);font-weight:400}
@@ -59,6 +62,8 @@ table.rt th:nth-child(3),table.rt td:nth-child(3){width:38px}
 table.rt th:nth-child(5),table.rt td:nth-child(5){width:50px}
 table.rt th:nth-child(6),table.rt td:nth-child(6){width:34px}
 
+.compact table{width:auto;table-layout:auto}.compact th,.compact td{white-space:nowrap;padding:4px 7px}.compact td input:not([type=checkbox]){width:auto;min-width:0;padding:4px 5px}.compact td input[type=text]{width:120px}.compact td input[type=number]{width:58px}.compact td input[type=checkbox]{width:18px;height:18px}
+.riders{table-layout:auto}.riders th,.riders td{padding:4px 5px;vertical-align:middle}.riders td input:not([type=checkbox]){min-width:0}.riders .r-name{width:100%}.riders .r-name input{width:100%;min-width:150px}.riders .r-num{width:78px}.riders .r-age{width:60px}.riders .r-gp{white-space:nowrap}.riders .r-force{width:150px}.riders .r-force input{width:140px!important}
 td.nom{word-break:break-word;font-size:14px}
 select.gate,select.ps{padding:2px 0;width:100%;min-width:0;text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none}
 select.gate{font-weight:700}
@@ -118,7 +123,8 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 .mb{background:var(--pk);border-color:var(--pk);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .mb.on{background:var(--ye);border-color:var(--ye);color:#111}
 
-@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}select.gate{background:#fff;color:#000;border:1px solid #000}}
+
+@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
 </style></head><body>
@@ -177,76 +183,69 @@ let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
+// Priorité des couleurs de plaque : fille (bleu) avant numéro contenant une lettre (vert).
+const plateClass=r=>`plate ${r&&r.f?'plate-girl':(/[a-z]/i.test(String(r&&r.num||''))?'plate-letter':'')}`;
+const plateHtml=r=>`<span class="${plateClass(r)}">${esc(r&&r.num||'')}</span>`;
 const grp=r=>r.go||(S.groups.find(g=>!!g.f===!!r.f&&r.age>=g.min&&r.age<=g.max)||{}).n||'NON DÉFINI';
 const gnames=()=>{const used=new Set(S.riders.map(grp));
  const a=S.groups.map(g=>g.n).filter(n=>used.has(n));used.forEach(n=>{if(!a.includes(n))a.push(n)});return a};
 const pts=p=>p>0?(S.points[p-1]||0):0;
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-
-
-// ===== Logique de course (automatique) =====
-const mk=(ph,g,label,ids,old)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
- const prev=old?old.rows:[];
- S.races.push({id:old?old.id:S.uid++,ph,g,label,rows:ids.map((rid,j)=>{
-  const o=prev.find(w=>w.rid===rid);
-  return{rid,gate:o?o.gate:gt[j],pos:o?o.pos:''}})})};
-const same=(a,b)=>a.length===b.length&&[...a].sort().join()===[...b].sort().join();
-const done=l=>l.length>0&&l.every(x=>x.rows.every(w=>w.pos!==''&&w.pos!=null));
+// ===== Logique de course =====
+const mk=(ph,g,label,ids,pick)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
+ S.races.push({id:S.uid++,ph,g,label,pick:!!pick,rows:ids.map((rid,j)=>({rid,gate:pick?'':gt[j],pos:''}))})};
 
 function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv),x=n%nv;let i=0;
  for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
+
+function genMotos(){
+ if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
+ S.races=[];
+ for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
+ mt=1;tab='motos';save();render()}
 
 function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
  S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
  return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
 
-function auto(){
- const old=S.races,keep=[];
- const gs=gnames();
- // Motos : on garde les groupes dont la liste de coureurs n'a pas changé
- S.races=[];
- gs.forEach(g=>{
-  const ids=S.riders.filter(r=>grp(r)===g).map(r=>r.id);
-  const om=old.filter(x=>x.ph<=3&&x.g===g);
-  const oids=[...new Set(om.filter(x=>x.ph===1).flatMap(x=>x.rows.map(w=>w.rid)))];
-  if(om.length&&same(ids,oids)){om.forEach(x=>S.races.push(x))}
-  else for(let m=1;m<=3;m++)waves(m,g,shuf(ids));
- });
- // Demis / Finales par groupe
- gs.forEach(g=>{
-  const motos=S.races.filter(x=>x.ph<=3&&x.g===g);
-  if(!done(motos))return;
-  const rk=rank(g).map(o=>o.r.id),n=rk.length;
-  const oD=old.filter(x=>x.ph==='D'&&x.g===g),oF=old.filter(x=>x.ph==='F'&&x.g===g);
-  const find=(arr,lab)=>arr.find(x=>x.label===lab);
-  if(n<=8){mk('F',g,'Finale A',rk,find(oF,'Finale A'));return}
-  const t=n>16?rk.slice(0,16):rk,d=[[],[]];
-  t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
-  d.forEach((ids,k)=>{const lab='Demi '+(k+1),o=find(oD,lab);
-   mk('D',g,lab,ids,o&&same(o.rows.map(w=>w.rid),ids)?o:(o?{id:o.id,rows:[]}:null))});
-  const demis=S.races.filter(x=>x.ph==='D'&&x.g===g);
-  if(!done(demis))return;
-  const sc={};demis.forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
+function genDemis(){
+ if(!S.races.some(x=>x.ph<=3))return alert("Génère d'abord les 3 motos.");
+ if(S.races.some(x=>x.ph>3&&x.rows.some(w=>w.pos))&&!confirm('Les résultats des demis et finales seront effacés. Continuer?'))return;
+ S.races=S.races.filter(x=>x.ph<=3);const warn=[];
+ gnames().forEach(g=>{const rk=rank(g).map(o=>o.r.id),n=rk.length;
+if(n<=8)return mk('F',g,'Finale A',rk,true);
+  let t=rk;if(n>16){t=rk.slice(0,16);warn.push(g+' ('+n+')')}
+  const d=[[],[]];t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
+  d.forEach((ids,k)=>mk('D',g,'Demi '+(k+1),ids))});
+ if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
+ tab='demis';save();render()}
+
+function genFinales(){
+ const gs=[...new Set(S.races.filter(x=>x.ph==='D').map(x=>x.g))];
+ if(!gs.length)return alert('Aucun demi à traiter.');
+ S.races=S.races.filter(x=>!(x.ph==='F'&&gs.includes(x.g)));
+ gs.forEach(g=>{const rk=rank(g).map(o=>o.r.id),sc={};
+  S.races.filter(x=>x.ph==='D'&&x.g===g).forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
   const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
-  const fa=ids.slice(0,8),fb=ids.slice(8);
-  const A=find(oF,'Finale A'),B=find(oF,'Finale B');
-  mk('F',g,'Finale A',fa,A&&same(A.rows.map(w=>w.rid),fa)?A:(A?{id:A.id,rows:[]}:null));
-  if(fb.length)mk('F',g,'Finale B',fb,B&&same(B.rows.map(w=>w.rid),fb)?B:(B?{id:B.id,rows:[]}:null));
- });
-}
+mk('F',g,'Finale A',ids.slice(0,8),true);if(ids.length>8)mk('F',g,'Finale B',ids.slice(8),true)});
+ tab='finales';save();render()}
 
 function setPos(xid,rid,el){
  const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
- w.pos=el.value===''?'':+el.value;
- const c={};x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
- const dup=Object.values(c).some(v=>v>1);
- if(dup){ // doublon : on avertit sans recalculer
-  document.querySelectorAll('input[data-x="'+xid+'"]').forEach(i=>i.classList.toggle('dup',!!i.value&&c[+i.value]>1));
-  $('#p'+xid+'_'+rid).textContent=pts(+w.pos);save();return}
- auto();save();
- const a=document.activeElement,k=a&&a.dataset?a.dataset.x:null;
- render();
+ const n=x.rows.length;
+ if(el.value===''){
+  w.pos='';
+ } else {
+  const v=+el.value;
+  w.pos=(v>=0&&v<=n)?v:'';
+  if(w.pos==='')el.value='';
+ }
+ $('#p'+xid+'_'+rid).textContent=w.pos===0?'DNF':(w.pos===''?'':pts(w.pos));
+ const ins=document.querySelectorAll('select[data-x="'+xid+'"]'),c={};
+ x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
+ ins.forEach(i=>i.classList.toggle('dup',!!i.value&&+i.value>0&&c[+i.value]>1));
+ save();
 }
 
 function setGate(xid,rid,el){
@@ -258,15 +257,15 @@ function setGate(xid,rid,el){
 
 // ===== Coureurs =====
 function addR(){const nom=$('#nn').value.trim();if(!nom)return;
- S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});auto();save();render()}
+ S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
 
 function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
  let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
- S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');auto();save();render()}
+ S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
 
-function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;if(['age','f','go'].includes(k)){auto();save();render()}else save()}
+function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
 
-function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));auto();save();render()}
+function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
 
 
 let importRows=[];
@@ -439,7 +438,6 @@ function confirmImport(){
   });
  });
 
- auto();
  save();
  render();
 
@@ -470,46 +468,50 @@ function cancelImport(){
 const rc=x=>{
  const n=x.rows.length;
  const used=x.rows.map(w=>+w.gate).filter(Boolean);
+ const posCounts={};x.rows.forEach(w=>{if(w.pos!==''&&+w.pos>0)posCounts[w.pos]=(posCounts[w.pos]||0)+1});
  const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span>
 ${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
 <table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
 const gate=x.pick
  ?`<td class="ch">${i+1}<td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
- :`<td><span class="plate">${w.gate}</span>`;
-return`<tr>${gate}<td>${esc(r.num)}<td class="nm">${esc(r.nom)}<td><select data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}>–</option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td class="pt" id="p${x.id}_${w.rid}">${w.pos===0?'DNF':pts(+w.pos)}`}).join('')}</table></div>`};
+ :`<td><span class="gate-badge">${w.gate}</span>`;
+return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select class="${w.pos!==''&&+w.pos>0&&posCounts[w.pos]>1?'dup':''}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}></option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td class="pt" id="p${x.id}_${w.rid}">${w.pos===0?'DNF':(w.pos===''?'':pts(+w.pos))}`}).join('')}</table></div>`};
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
   const V={
+coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
-coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div></div>
 
-<div class="card np" style="margin:15px 0;border-left-color:var(--or)">
-<h2>IMPORTER DES COUREURS</h2>
-<p>Formats acceptés : CSV, XLS, XLSX</p>
-<div class="row"><input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])"></div>
-<div id="importInfo" class="mut">Aucun fichier sélectionné.</div>
+<details class="imp"><summary><h2>📥 Importer des coureurs (CSV / Excel)</h2></summary>
+<div class="box">
+<input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])">
+<div id="importInfo" class="mut" style="font-size:13px;margin-top:6px">Aucun fichier sélectionné.</div>
 <div id="importMapping"></div>
 <div id="importPreview"></div>
-<div class="row"><button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button><button onclick="cancelImport()">Annuler</button></div>
+<div class="row">
+<button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button>
+<button onclick="cancelImport()">Annuler</button>
+</div>
 <div id="importResult"></div>
 </div>
+</details>
+
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
-<p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge.</p>
-<table><tr><th>Nom<th>N°<th>Âge<th>Fille<th>Groupe forcé<th>Groupe actuel<th></tr>${S.riders.map(r=>`<tr><td><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"><td><input list="gl" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><td>${esc(grp(r))}<td><button onclick="delR(${r.id})">✕</button>`).join('')}</table>`,
-
-groupes:()=>`<h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:64px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
-<h2>- GROUPES D'ÂGES -</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);auto();save();render()">✕</button>`).join('')}</table>
-<div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});auto();save();render()">+ Groupe</button></div>
-<p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p>`,
-motos:()=>`<div class="row np">${[1,2,3].map(m=>`<button class="${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph===mt,'Aucune moto: ajoute des coureurs dans l\'onglet Coureurs.'),
-class:()=>`<div class("row np"><button onclick("print()">Imprimer</button></div><div class("grid")>${gnames().map(g=>`<div class("card")><span class("gn")>${esc(g)}</span><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class("mut")>${o.s}`).join('')}</table></div>`).join('')}</div>`,
-demis:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><p class="mut">Les demis apparaissent quand les 3 motos sont complètes (9 à 16 coureurs). 8 et moins : finale directe.</p>`+grid(x=>x.ph==='D','Aucune demi pour le moment.'),
-finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale pour le moment.'),
+<p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
+<table class="riders"><thead><tr><th>Nom</th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${S.riders.map(r=>`<tr><td class="r-name"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp">${esc(grp(r))}</td><td class="r-force"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
+groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:48px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
+<h2>- GROUPES D'ÂGES -</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
+<div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
+<p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
+motos:()=>`<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».'),
+class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+demis:()=>`<div class="row np"><button class="p" onclick="genDemis()">Générer demis (et finales directes)</button><button onclick="print()">Imprimer</button></div><p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>`+grid(x=>x.ph==='D','Aucun demi.'),
+finales:()=>`<div class="row np"><button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
-return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
+return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
 
 
@@ -540,8 +542,6 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
-
- if(typeof V[tab]!=='function')tab='coureurs';
  const locked=sb&&!user;
  $('#lo').style.display=sb&&user?'':'none';
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
@@ -549,6 +549,7 @@ function render(){
   $('#sel').innerHTML=courses.length
   ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
   :'<option value="">(aucune course sauvegardée)</option>';
+ if(typeof V[tab]!=="function")tab="coureurs";
  $('#app').innerHTML=locked?
   (authStep==='verify'?verificationV():loginV())
   :V[tab]();
@@ -573,7 +574,7 @@ async function loadList(){
 
 async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);auto();localStorage.bmx_cid=id}
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
 
 let creating=false;
 async function newC(){
@@ -778,7 +779,6 @@ async function autoSync(){
   if(data.updated_at!==lastSync){
    if(lastSync!==''){
     S=Object.assign(DEF(),data.data);
-    auto();
     render();
     stat('Mis à jour automatiquement');
    }
@@ -809,4 +809,5 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
  render();
 })();
 
-</script></body></html>
+</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+</body></html>
