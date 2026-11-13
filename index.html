@@ -130,6 +130,19 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 .mb.on{background:var(--ye);border-color:var(--ye);color:#111}
 
 
+
+.demi-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));gap:10px;margin:10px 0 16px}
+.demi-check{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--or);border-radius:8px;padding:11px 13px;min-width:0}
+.demi-check.ready{border-left-color:#66bb6a}
+.demi-check.direct{border-left-color:#64b5f6}
+.demi-check .gn{margin:0 0 8px}
+.demi-check p{margin:5px 0;overflow-wrap:anywhere}
+.demi-check .check-ready{color:#81c784;font-weight:750}
+.demi-check .check-direct{color:#90caf9;font-weight:700}
+.demi-check .check-missing{color:#ffcc80;font-weight:650}
+.demi-check .check-ok{color:var(--mut)}
+@media(max-width:600px){.demi-checks{grid-template-columns:minmax(0,1fr)}.demi-check{padding:10px}}
+
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
@@ -228,6 +241,21 @@ function motosCompletes(g){
      rows.some(w=>!wanted.has(w.rid)||!hasResult(w.pos)))return false;
  }
  return true;
+}
+
+// Résumé par groupe des résultats manquants dans chacune des trois motos.
+function diagnosticDemis(g){
+ const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+ if(n<=8)return {g,n,direct:true,ready:false,motos:[]};
+ const motos=[1,2,3].map(ph=>{
+  const rows=S.races.filter(x=>Number(x.ph)===ph&&x.g===g).flatMap(x=>x.rows);
+  const missing=riders.filter(r=>{
+   const own=rows.filter(w=>w.rid===r.id);
+   return own.length!==1||!hasResult(own[0]?.pos);
+  }).map(r=>r.nom||`Coureur ${r.id}`);
+  return {moto:ph,missing};
+ });
+ return {g,n,direct:false,ready:motos.every(m=>m.missing.length===0),motos};
 }
 
 // Les demis et finales sont dérivés des résultats; les portes existantes sont conservées.
@@ -535,6 +563,18 @@ return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select cla
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
+  const diagnosticV=()=>{
+   const checks=gnames().map(diagnosticDemis);
+   if(!checks.length)return `<p class="mut np">Aucun groupe avec des coureurs.</p>`;
+   return `<section class="demi-checks np" aria-label="État des résultats avant les demis">${checks.map(c=>{
+    if(c.direct)return `<article class="demi-check direct"><span class="gn">${esc(c.g)}</span><p class="check-direct">${esc(c.g)} : finale directe (${c.n} coureur${c.n>1?'s':''}).</p></article>`;
+    const details=c.motos.map(m=>m.missing.length
+     ?`<p class="check-missing">Moto ${m.moto} : il reste ${m.missing.length} coureur${m.missing.length>1?'s':''} sans résultat : ${m.missing.map(esc).join(', ')}</p>`
+     :`<p class="check-ok">Moto ${m.moto} : résultats complets</p>`).join('');
+    return `<article class="demi-check ${c.ready?'ready':''}"><span class="gn">${esc(c.g)}</span>${c.ready?`<p class="check-ready">Groupe ${esc(c.g)} : prêt pour les demis</p>`:''}${details}</article>`;
+   }).join('')}</section>`;
+  };
+
   const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
@@ -563,8 +603,8 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
 motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
-demis:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><p class="mut">Les demis se créent automatiquement dès que les résultats des 3 motos sont saisis pour chaque coureur du groupe.</p>`+grid(x=>x.ph==='D','Aucun demi : complète les positions des 3 motos pour les groupes de plus de 8 coureurs.'),
-finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+demis:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><p class="mut np">Les demis se créent automatiquement dès que les résultats des 3 motos sont saisis pour chaque coureur du groupe.</p>`+diagnosticV()+grid(x=>x.ph==='D','Aucun demi : complète les résultats des 3 motos pour les groupes de plus de 8 coureurs.'),
+finales:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticV()+grid(x=>x.ph==='F','Aucune finale.'),
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
