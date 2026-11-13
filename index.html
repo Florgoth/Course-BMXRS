@@ -195,7 +195,9 @@ const plateHtml=r=>`<span class="${plateClass(r)}">${esc(r&&r.num||'')}</span>`;
 const grp=r=>r.go||(S.groups.find(g=>!!g.f===!!r.f&&r.age>=g.min&&r.age<=g.max)||{}).n||'NON DÉFINI';
 const gnames=()=>{const used=new Set(S.riders.map(grp));
  const a=S.groups.map(g=>g.n).filter(n=>used.has(n));used.forEach(n=>{if(!a.includes(n))a.push(n)});return a};
-const pts=p=>p>0?(S.points[p-1]||0):0;
+const pts=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?(Number(S.points[n-1])||0):0};
+const hasResult=p=>p!==null&&p!==undefined&&String(p).trim()!=='';
+const finishPos=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?n:0};
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 // ===== Logique de course =====
@@ -212,7 +214,7 @@ function genMotos(){
  mt=1;tab='motos';save();render()}
 
 function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
- S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
+ S.races.filter(x=>Number(x.ph)>=1&&Number(x.ph)<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(w.pos);o.s+=finishPos(w.pos)}}));
  return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
 
 // Vérifie qu'une position est saisie pour chaque coureur sur chacune des 3 motos.
@@ -220,9 +222,10 @@ function motosCompletes(g){
  const ids=S.riders.filter(r=>grp(r)===g).map(r=>r.id), wanted=new Set(ids);
  if(!ids.length)return false;
  for(let ph=1;ph<=3;ph++){
-  const races=S.races.filter(x=>x.ph===ph&&x.g===g), rows=races.flatMap(x=>x.rows);
+  const races=S.races.filter(x=>Number(x.ph)===ph&&x.g===g), rows=races.flatMap(x=>x.rows);
+  // Une valeur explicite (position ou statut DNF/DNS/...) suffit; 0 est un résultat valide.
   if(!races.length||rows.length!==wanted.size||new Set(rows.map(w=>w.rid)).size!==wanted.size||
-     rows.some(w=>!wanted.has(w.rid)||w.pos===''))return false;
+     rows.some(w=>!wanted.has(w.rid)||!hasResult(w.pos)))return false;
  }
  return true;
 }
@@ -260,9 +263,9 @@ function auto(){
   if(!riders.length||!motosCompletes(g))continue;
   if(n<=8){desiredF.push({g,label:'Finale A',ids:rank(g).map(o=>o.r.id)});continue;}
   const ds=S.races.filter(x=>x.ph==='D'&&x.g===g);
-  if(ds.length!==2||ds.some(x=>!x.rows.length||x.rows.some(w=>w.pos==='')))continue;
+  if(ds.length!==2||ds.some(x=>!x.rows.length||x.rows.some(w=>!hasResult(w.pos))))continue;
   const motoRank=rank(g).map(o=>o.r.id), scores={};
-  ds.forEach(x=>x.rows.forEach(w=>scores[w.rid]=(scores[w.rid]||0)+pts(+w.pos)));
+  ds.forEach(x=>x.rows.forEach(w=>scores[w.rid]=(scores[w.rid]||0)+pts(w.pos)));
   const ids=Object.keys(scores).map(Number).sort((a,b)=>scores[b]-scores[a]||motoRank.indexOf(a)-motoRank.indexOf(b));
   if(ids.length)desiredF.push({g,label:'Finale A',ids:ids.slice(0,8)});
   if(ids.length>8)desiredF.push({g,label:'Finale B',ids:ids.slice(8)});
