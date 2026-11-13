@@ -681,15 +681,17 @@ function render(){
 
 // ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
-let tm;
+let tm=null,saveInFlight=false;
 function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
- tm=setTimeout(async()=>{const now=new Date().toISOString();
-  const{error}=await sb.from('courses').update({data:S,updated_at:now}).eq('id',cid);
-  stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé');
-  if(!error){const c=courses.find(x=>x.id===cid);if(c){c.updated_at=now;
-   const o=document.querySelector('#sel option[value="'+cid+'"]');
-   if(o)o.textContent=c.nom+' · '+new Date(now).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'})}}
+ tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();
+  try{
+   const{error}=await sb.from('courses').update({data:S,updated_at:now}).eq('id',cid);
+   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé');
+   if(!error){lastSync=now;const c=courses.find(x=>x.id===cid);if(c){c.updated_at=now;
+    const o=document.querySelector('#sel option[value="'+cid+'"]');
+    if(o)o.textContent=c.nom+' · '+new Date(now).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'})}}
+  }finally{saveInFlight=false}
  },600)}
 
 async function loadList(){
@@ -887,28 +889,30 @@ async function boot(){
 
 // ===== Rafraîchissement automatique =====
 let lastSync='';
-let lastTry=0;
+let lastTry=0,syncInFlight=false;
 
 async function autoSync(){
-   lastTry=Date.now();
- if(!sb||!cid||!user)return;
- // Ne rien faire si quelqu'un est en train de saisir
- const a=document.activeElement;
- if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))return;
- // Ne rien faire si une sauvegarde locale est en attente
- if(tm)return;
+ lastTry=Date.now();
+ if(!sb||!cid||!user||tm!==null||saveInFlight||syncInFlight)return;
+ syncInFlight=true;
  try{
+  // Ne rien faire si quelqu'un est en train de saisir.
+  const a=document.activeElement;
+  if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))return;
   const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
   if(error||!data)return;
   if(data.updated_at!==lastSync){
-   if(lastSync!==''){
+   const alreadyInitialized=lastSync!=='';
+   lastSync=data.updated_at;
+   if(alreadyInitialized){
     S=Object.assign(DEF(),data.data);
+    // render() met à jour entièrement l'onglet courant et recalcule les dérivés;
+    // auto() ne sauvegarde que si les demis/finales ont réellement changé.
     render();
     stat('Mis à jour automatiquement');
    }
-   lastSync=data.updated_at;
   }
- }catch(e){}
+ }catch(e){}finally{syncInFlight=false}
 }
 setInterval(autoSync,5000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoSync()});
