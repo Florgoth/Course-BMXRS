@@ -684,11 +684,11 @@ const stat=t=>$('#st').textContent=t;
 let tm=null,saveInFlight=false;
 function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
- tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();
+ tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();const payload=JSON.parse(JSON.stringify(S));
   try{
-   const{error}=await sb.from('courses').update({data:S,updated_at:now}).eq('id',cid);
+   const{error}=await sb.from('courses').update({data:payload,updated_at:now}).eq('id',cid);
    stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé');
-   if(!error){lastSync=now;const c=courses.find(x=>x.id===cid);if(c){c.updated_at=now;
+   if(!error){lastSync=now;lastSyncData=stableStringify(payload);const c=courses.find(x=>x.id===cid);if(c){c.updated_at=now;
     const o=document.querySelector('#sel option[value="'+cid+'"]');
     if(o)o.textContent=c.nom+' · '+new Date(now).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'})}}
   }finally{saveInFlight=false}
@@ -700,7 +700,7 @@ async function loadList(){
 
 async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);localStorage.bmx_cid=id}
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
 
 let creating=false;
 async function newC(){
@@ -889,28 +889,69 @@ async function boot(){
 
 // ===== Rafraîchissement automatique =====
 let lastSync='';
+let lastSyncData='';
 let lastTry=0,syncInFlight=false;
+
+// Comparaison du contenu (et non de l'horloge locale/serveur), stable même si
+// les clés d'un objet JSON sont renvoyées dans un ordre différent.
+function stableStringify(value){
+ if(value===null||typeof value!=='object')return JSON.stringify(value);
+ if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';
+ return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableStringify(value[k])).join(',')+'}';
+}
+
+// render() remplace le DOM de l'onglet. Garder le focus, la sélection et un
+// éventuel brouillon encore non validé dans le champ actuellement édité.
+function renderPreservingFocus(){
+ const root=$('#app'),active=document.activeElement;
+ let path=null,oldValue=null,oldChecked=null,isCheck=false,start=null,end=null,direction=null;
+ if(root&&active&&root.contains(active)){
+  path=[];let node=active;
+  while(node&&node!==root){
+   const parent=node.parentNode;if(!parent){path=null;break}
+   path.unshift(Array.prototype.indexOf.call(parent.childNodes,node));node=parent;
+  }
+  if(active.matches('input,textarea,select')){
+   oldValue=active.value;
+   isCheck=active.matches('input[type=checkbox],input[type=radio]');
+   if(isCheck)oldChecked=active.checked;
+   if(typeof active.selectionStart==='number'){start=active.selectionStart;end=active.selectionEnd;direction=active.selectionDirection}
+  }
+ }
+ render();
+ if(!path)return;
+ let node=root;
+ for(const index of path){node=node&&node.childNodes[index]}
+ if(!node||typeof node.focus!=='function')return;
+ try{
+  node.focus({preventScroll:true});
+  // Si le champ contenait une saisie pas encore validée, ne la jette pas:
+  // le nouvel état distant est déjà appliqué aux autres éléments.
+  if(isCheck&&node.matches('input[type=checkbox],input[type=radio]'))node.checked=oldChecked;
+  else if(oldValue!==null&&node.matches('input,textarea,select')&&node.value!==oldValue){
+   node.value=oldValue;
+   if(start!==null&&typeof node.setSelectionRange==='function')node.setSelectionRange(Math.min(start,oldValue.length),Math.min(end,oldValue.length),direction||'none');
+  }else if(start!==null&&typeof node.setSelectionRange==='function'){
+   const length=node.value.length;node.setSelectionRange(Math.min(start,length),Math.min(end,length),direction||'none');
+  }
+ }catch(e){}
+}
 
 async function autoSync(){
  lastTry=Date.now();
- if(!sb||!cid||!user||tm!==null||saveInFlight||syncInFlight)return;
+ if(!sb||!cid||!user||tm!==null||syncInFlight)return;
  syncInFlight=true;
  try{
-  // Ne rien faire si quelqu'un est en train de saisir.
-  const a=document.activeElement;
-  if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))return;
   const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
   if(error||!data)return;
-  if(data.updated_at!==lastSync){
-   const alreadyInitialized=lastSync!=='';
+  const remote=stableStringify(data.data);
+  if(remote!==lastSyncData){
    lastSync=data.updated_at;
-   if(alreadyInitialized){
-    S=Object.assign(DEF(),data.data);
-    // render() met à jour entièrement l'onglet courant et recalcule les dérivés;
-    // auto() ne sauvegarde que si les demis/finales ont réellement changé.
-    render();
-    stat('Mis à jour automatiquement');
-   }
+   S=Object.assign(DEF(),data.data);
+   lastSyncData=stableStringify(S);
+   // Re-render même pendant l'édition, en conservant le focus et le brouillon.
+   renderPreservingFocus();
+   stat('Mis à jour automatiquement');
   }
  }catch(e){}finally{syncInFlight=false}
 }
@@ -921,9 +962,25 @@ window.addEventListener('pageshow',autoSync);
 window.addEventListener('online',autoSync);
 document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync()},{passive:true});
 
+// Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
+function installNoCacheFetch(){
+ if(window.__bmxNoCacheFetchInstalled||!window.fetch)return;
+ const originalFetch=window.fetch.bind(window);
+ window.fetch=(input,init)=>{
+  const url=typeof input==='string'?input:(input&&input.url)||'';
+  const method=((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+  if(method==='GET'&&url.startsWith(NEON_DATA_URL)){
+   return originalFetch(input,Object.assign({},init,{cache:'no-store'}));
+  }
+  return originalFetch(input,init);
+ };
+ window.__bmxNoCacheFetchInstalled=true;
+}
+
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
   try{
+   installNoCacheFetch();
    const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
    const{data}=await sb.auth.getSession();
