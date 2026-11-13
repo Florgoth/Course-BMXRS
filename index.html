@@ -258,6 +258,20 @@ function diagnosticDemis(g){
  return {g,n,direct:false,ready:motos.every(m=>m.missing.length===0),motos};
 }
 
+// Dans Finales, contrôler les trois motos pour tous les groupes, y compris les finales directes.
+function diagnosticFinalesMotos(g){
+ const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+ const motos=[1,2,3].map(ph=>{
+  const rows=S.races.filter(x=>Number(x.ph)===ph&&x.g===g).flatMap(x=>x.rows);
+  const missing=riders.filter(r=>{
+   const own=rows.filter(w=>w.rid===r.id);
+   return own.length!==1||!hasResult(own[0]?.pos);
+  }).map(r=>r.nom||`Coureur ${r.id}`);
+  return {moto:ph,missing};
+ });
+ return {g,n,direct:false,ready:n>0&&motos.every(m=>m.missing.length===0),motos};
+}
+
 // Les demis et finales sont dérivés des résultats; les portes existantes sont conservées.
 function auto(){
  const wantedDemis=[];
@@ -577,10 +591,10 @@ return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select cla
    }).join('')}</section>`;
   };
   const finaleState=g=>{
-   const c=diagnosticDemis(g);
-   if(c.direct)return {g,n:c.n,direct:true,ready:true};
+   const c=diagnosticFinalesMotos(g);
+   if(!c.ready)return {...c,ready:false,title:`Groupe ${esc(g)} : résultats des motos manquants avant les finales`};
+   if(c.n<=8)return {...c,ready:true};
    const ds=S.races.filter(x=>x.ph==='D'&&x.g===g);
-   if(!c.ready)return {...c,ready:false,title:`Groupe ${esc(g)} : résultats manquants avant les demis`};
    const semiMissing=ds.filter(d=>!d.rows.length||d.rows.some(w=>!hasResult(w.pos))).map(d=>({
     label:d.label,names:d.rows.filter(w=>!hasResult(w.pos)).map(w=>(R(w.rid)||{}).nom||`Coureur ${w.rid}`)
    }));
@@ -618,7 +632,7 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
 class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
-finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
+finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
 return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
