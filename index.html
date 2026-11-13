@@ -1,18 +1,32 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8">
+<html lang="fr"><head>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BMX Race – Course locale</title>
+<meta name="theme-color" content="#c2185b">
+<title>[TEST] BMX RACE – COURSE LOCALE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
 <style>
 :root{--bg:#1f2023;--bar:#161719;--card:#2a2c30;--line:#40434a;--tx:#ededed;--mut:#9a9ea6;--pk:#c2185b;--or:#ff8f00;--ye:#ffd600}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,sans-serif}
 header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;background:var(--bar);border-bottom:3px solid var(--pk)}
-h1{font-size:19px;margin:0 auto 0 0;color:var(--ye);letter-spacing:.5px;cursor:pointer}
-h2{color:var(--or);font-size:16px;margin:18px 0 6px}
+h1{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:28px;margin:0 auto 0 0;color:var(--pk);letter-spacing:1.5px;line-height:1}
+h2{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;color:var(--ye);font-size:20px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:1px}
 nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;background:#25272b}
 button,select,input,textarea{font:inherit;color:var(--tx);background:#34373c;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button:hover{border-color:var(--or)}
-button.p{background:var(--pk);border-color:var(--pk)}button.on{background:var(--or);border-color:var(--or);color:#111;font-weight:600}
+button.ico{background:none;border-color:transparent;color:var(--mut);padding:6px;display:inline-flex;align-items:center}
+button.ico:hover{color:var(--or);border-color:transparent}
+button.ico svg{display:block}
+button.ico.del:hover{color:#f44}
+button.del:hover,button[title="Supprimer"]:hover{color:#f44!important;border-color:#f44!important}
+header button{min-width:40px;font-size:18px;line-height:1;padding:6px 8px}
 :focus-visible{outline:2px solid var(--ye);outline-offset:1px}
 main{padding:14px;max-width:1150px;margin:auto}
 table{border-collapse:collapse;width:100%}
@@ -23,363 +37,1013 @@ td input[type=number]{width:70px}
 .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--pk);border-radius:8px;padding:10px 12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
 .plate{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--ye);color:#111;font-weight:800}
+.plate.plate-girl{background:#1976d2;color:#fff}.plate.plate-letter{background:#2e7d32;color:#fff}.plate-input{width:68px!important;min-width:0!important;padding:3px 5px!important}
+.gate-badge{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--pk);color:#fff;font-weight:800}
 .mut{color:var(--mut)}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
-.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:700;background:#2e7d32;color:#fff}
-.badge.off{background:#555}
-.course{cursor:pointer}.course:hover{border-left-color:var(--or)}
+select.gate{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:800;text-align:center;min-width:56px}
+select.gate option{background:#fff;color:#111}
+select.gate option:disabled{color:#aaa}
+select.gate.vide{background:#34373c;color:var(--mut);border-color:var(--line);font-weight:400}
 input.dup{border-color:#f44;background:#5a1d1d}
-@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate{border:1px solid #000;background:#fff}}
+select.dup{border-color:#f44;background:#5a1d1d}
+
+.gn{display:block;font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:24px;letter-spacing:1px;line-height:1.1;color:var(--pk);text-transform:uppercase;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.gn small{font-family:system-ui,sans-serif;font-size:13px;letter-spacing:0;color:var(--mut);text-transform:none;margin-left:6px}
+
+
+table.rt{table-layout:fixed;width:100%}
+table.rt th,table.rt td{padding:3px 3px;overflow:hidden}
+table.rt .c,table.rt td:not(.nom){text-align:center}
+
+table.rt th:nth-child(1),table.rt td:nth-child(1){width:34px}
+table.rt th:nth-child(2),table.rt td:nth-child(2){width:44px}
+table.rt th:nth-child(3),table.rt td:nth-child(3){width:38px}
+table.rt th:nth-child(5),table.rt td:nth-child(5){width:50px}
+table.rt th:nth-child(6),table.rt td:nth-child(6){width:34px}
+
+.compact table{width:auto;table-layout:auto}.compact th,.compact td{white-space:nowrap;padding:4px 7px}.compact td input:not([type=checkbox]){width:auto;min-width:0;padding:4px 5px}.compact td input[type=text]{width:120px}.compact td input[type=number]{width:58px}.compact td input[type=checkbox]{width:18px;height:18px}
+.riders{table-layout:auto}.riders th,.riders td{padding:4px 5px;vertical-align:middle}.riders td input:not([type=checkbox]){min-width:0}.riders .r-name{width:100%}.riders .r-name input{width:100%;min-width:150px}.riders .r-num{width:78px}.riders .r-age{width:60px}.riders .r-gp{white-space:nowrap}.riders .r-force{width:150px}.riders .r-force input{width:140px!important}
+.compact>.row label{min-width:88px}.compact>.row input[type=number]{width:60px!important}
+.age-groups{table-layout:fixed;width:100%}.age-groups th:first-child,.age-groups td:first-child{width:38%}.age-groups th:nth-child(2),.age-groups td:nth-child(2),.age-groups th:nth-child(3),.age-groups td:nth-child(3){width:20%}.age-groups th:nth-child(4),.age-groups td:nth-child(4){width:14%}.age-groups th:last-child,.age-groups td:last-child{width:8%}.age-groups input:not([type=checkbox]){min-width:0!important;width:100%!important}
+td.nom{word-break:break-word;font-size:14px}
+select.gate,select.ps{padding:2px 0;width:100%;min-width:0;text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none}
+select.gate{font-weight:700}
+@media (max-width:600px){
+ .card{padding:8px}
+ table.rt th,table.rt td{font-size:13px;padding:3px 2px}
+}
+
+@media(max-width:600px){
+ body{overflow-x:hidden}main{padding:10px;min-width:0}.riders{display:block;width:100%;table-layout:fixed}.riders thead{display:none}.riders tbody{display:block;width:100%}.riders tbody tr{display:grid;grid-template-columns:68px minmax(0,1fr) 68px 42px;gap:4px 6px;padding:8px 2px;border-bottom:1px solid var(--line)}.riders tbody td{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;min-width:0;width:auto!important;padding:2px!important;white-space:normal!important;overflow-wrap:anywhere;text-align:left}.riders tbody td::before{content:attr(data-label);display:block;color:var(--mut);font-size:10px;line-height:1.1;flex:0 0 auto}.riders .r-sex{align-items:center!important}.riders .r-name{grid-row:1;grid-column:1/3}.riders .r-num{grid-row:1;grid-column:3}.riders .r-sex{grid-row:1;grid-column:4;justify-content:center}.riders .r-age{grid-row:2;grid-column:1}.riders .r-gp{grid-row:2;grid-column:2;word-break:break-word}.riders .r-force{grid-row:2;grid-column:3}.riders .r-delete{grid-row:2;grid-column:4;justify-content:center}.riders .r-name input,.riders .r-force input{min-width:0!important;width:100%!important}.riders .r-num input{width:100%!important;min-width:0!important}.riders .r-sex input{width:18px;height:18px;margin:0}.age-groups th:first-child,.age-groups td:first-child{width:28%}.age-groups th:nth-child(2),.age-groups td:nth-child(2),.age-groups th:nth-child(3),.age-groups td:nth-child(3){width:21%}.age-groups th:nth-child(4),.age-groups td:nth-child(4){width:17%}.age-groups th:last-child,.age-groups td:last-child{width:13%}.age-groups td:first-child input{white-space:normal;overflow-wrap:anywhere}
+}
+
+details.imp{margin:10px 0}
+details.imp>summary{cursor:pointer;list-style:none;padding:8px 12px;background:#34373c;border:1px solid var(--line);border-radius:6px;color:var(--ye);font-weight:600}
+details.imp>summary::-webkit-details-marker{display:none}
+details.imp[open]>summary{border-color:var(--ye);margin-bottom:8px}
+details.imp .box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ye);border-radius:8px;padding:10px 12px}
+input[type=file]{width:100%;padding:4px;font-size:14px}
+input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);border:0;border-radius:6px;padding:6px 10px;margin-right:8px;cursor:pointer;font:inherit}
+.imp h3{margin:10px 0 4px;font-size:14px;color:var(--or)}
+.imp p{margin:4px 0;font-size:13px}
+.imp .row label{min-width:70px;font-size:13px}
+.imp .row select{flex:1;min-width:0;padding:4px 6px}
+.imp .pv{max-height:180px;overflow-y:auto}
+.imp .pv table{font-size:13px}
+.imp .pv th,.imp .pv td{padding:2px 4px}
+
+.rider{border-top:1px solid var(--line);padding:10px 0}
+.rider .l1{display:grid;grid-template-columns:1fr 70px 70px 54px;gap:8px;align-items:end}
+.rider label.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.rider label.f input{width:100%;font-size:16px;font-weight:600;color:var(--tx);text-transform:none;letter-spacing:0}
+.rider label.f.c{align-items:center}
+.rider label.f.c input{width:26px;height:26px;margin:4px 0}
+.rider .l2{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px;color:var(--mut)}
+.rider .l2 input{flex:1;min-width:0;padding:4px 8px;font-size:13px}
+.rider .l2 button{border-color:#7a2a2a;color:#ff8a8a}
+
+.card table.rc{table-layout:auto}
+.card table.rc th,.card table.rc td{padding:4px 5px;white-space:nowrap}
+.card table.rc td.nm,.card table.rc th.nm{width:100%;white-space:normal;word-break:break-word;font-weight:600}
+.card table.rc select{width:auto;min-width:0;padding:4px 2px}
+.card table.rc select.gate{width:46px}
+.card table.rc td.pt{text-align:center;min-width:28px}
+.card table.rc td.ch{text-align:center;color:var(--mut)}
+
+#lo{font-size:18px;line-height:1;padding:6px 10px}
+#lo:hover{border-color:#f44;color:#f44}
+
+@media(max-width:420px){.rider .l1{grid-template-columns:1fr 58px 58px 46px;gap:6px}}
+
+nav button{padding:8px 14px;opacity:.65}
+nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#ffffff;font-weight:800;box-shadow:0 0 0 3px rgba(255, 255, 255, 0.35)}
+
+.mototabs button{min-width:78px;padding:8px 12px;opacity:.65}
+.mototabs button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#ffffff;font-weight:800;box-shadow:0 0 0 3px rgba(255, 255, 255, 0.35)}
+.mototitle{margin:10px 0 4px;font-size:22px;font-weight:800;color:var(--pk);letter-spacing:.5px}
+
+#importPreview{max-height:400px;overflow:auto}
+#importPreview thead th{position:sticky;top:0;background:#fff}
+
+.mb{background:var(--pk);border-color:var(--pk);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.mb.on{background:var(--ye);border-color:var(--ye);color:#111}
+
+
+
+.demi-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));gap:10px;margin:10px 0 16px}
+.demi-check{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--or);border-radius:8px;padding:11px 13px;min-width:0}
+.demi-check.ready{border-left-color:#66bb6a}
+.demi-check.direct{border-left-color:#64b5f6}
+.demi-check .gn{margin:0 0 8px}
+.demi-check p{margin:5px 0;overflow-wrap:anywhere}
+.demi-check .check-ready{color:#81c784;font-weight:750}
+.demi-check .check-direct{color:#90caf9;font-weight:700}
+.demi-check .check-missing{color:#ffcc80;font-weight:650}
+.demi-check .check-ok{color:var(--mut)}
+@media(max-width:600px){.demi-checks{grid-template-columns:minmax(0,1fr)}.demi-check{padding:10px}}
+
+@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
+@media print{.gn{color:#000;border-bottom-color:#000}}
+
 </style></head><body>
+
 <header>
-<h1 onclick="goHome()">BMX RACE · Course locale</h1>
+<h1>[TEST] BMX RACE · COURSE LOCALE</h1>
 <select id="sel" onchange="openC(this.value).then(render)"></select>
-<button id="bNew" onclick="newC()">Nouvelle course</button>
-<button id="bPub" onclick="togglePub()"></button>
-<button onclick="reload()" title="Recharger depuis le serveur">Recharger</button>
-<button id="bLog" onclick="loginBtn()"></button>
+
+<button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
+
+<button class="ico" onclick="renC()" title="Renommer" aria-label="Renommer">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12 20h9"/>
+<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>
+</svg>
+</button>
+
+<button class="ico del" onclick="delC()" title="Supprimer" aria-label="Supprimer">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<polyline points="3 6 5 6 21 6"/>
+<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+<path d="M10 11v6M14 11v6"/>
+<path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+</svg>
+</button>
+
+<button id="pub" onclick="togglePublic()" title="Publier" style="display:none">🌐</button>
+
+<button class="ico" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/>
+<polyline points="3 4 3 9 8 9"/>
+<path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/>
+<polyline points="21 20 21 15 16 15"/>
+</svg>
+</button>
+
+<button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">⏻</button>
+<span id="who" class="mut"></span>
+
 <span id="st" class="mut"></span>
 </header>
+
 <nav id="nav"></nav>
 <main id="app"></main>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
-// ===== Configuration Neon =====
-const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
-// Compte public (lecture seule, utilisé en arrière-plan). À REMPLIR.
-const PUBLIC_EMAIL='public@tonclub.ca', PUBLIC_PW='CHANGE_MOI_8CAR+';
+// ===== Configuration Neon (laisser vide = mode local, sans compte) =====
+// Console Neon > Auth : URL d'authentification. Console Neon > Data API : URL de l'API.
+const NEON_AUTH_URL='https://ep-green-boat-be6lpg3y.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-green-boat-be6lpg3y.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
 let sb=null;
+
+const PUBLIC_EMAIL='public@bmxrivesud.com', PUBLIC_PW='';
+let isOrg=false, view='org', publicList=[];
 
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
  const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
-// view: 'home' (liste publique) | 'public' (course en lecture seule) | 'org' (organisateur)
-let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[],view='home',isPub=false,ro=false;
-let pubList=[],fToday=false,fQ='',pubName='',isOrg=false;
+let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&','<':'<','>':'>','"':'"'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
+// Priorité des couleurs de plaque : numéro contenant une lettre (vert), puis fille (bleu), sinon jaune.
+const plateClass=r=>`plate ${/[a-z]/i.test(String(r&&r.num||''))?'plate-letter':(r&&r.f?'plate-girl':'')}`;
+const plateHtml=r=>`<span class="${plateClass(r)}">${esc(r&&r.num||'')}</span>`;
 const grp=r=>r.go||(S.groups.find(g=>!!g.f===!!r.f&&r.age>=g.min&&r.age<=g.max)||{}).n||'NON DÉFINI';
 const gnames=()=>{const used=new Set(S.riders.map(grp));
  const a=S.groups.map(g=>g.n).filter(n=>used.has(n));used.forEach(n=>{if(!a.includes(n))a.push(n)});return a};
-const pts=p=>p>0?(S.points[p-1]||0):0;
+const pts=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?(Number(S.points[n-1])||0):0};
+const hasResult=p=>p!==null&&p!==undefined&&String(p).trim()!=='';
+const finishPos=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?n:0};
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 // ===== Logique de course =====
-const mk=(ph,g,label,ids)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
- S.races.push({id:S.uid++,ph,g,label,rows:ids.map((rid,j)=>({rid,gate:gt[j],pos:''}))})};
+const mk=(ph,g,label,ids,pick)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
+ S.races.push({id:S.uid++,ph,g,label,pick:!!pick,rows:ids.map((rid,j)=>({rid,gate:pick?'':gt[j],pos:''}))})};
+
 function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv),x=n%nv;let i=0;
  for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
+
 function genMotos(){
  if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
  S.races=[];
  for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
  mt=1;tab='motos';save();render()}
+
 function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
- S.races.filter(x=>x.ph<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(+w.pos);o.s+=(+w.pos||9)}}));
+ S.races.filter(x=>Number(x.ph)>=1&&Number(x.ph)<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(w.pos);o.s+=finishPos(w.pos)}}));
  return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
-function genDemis(){
- if(!S.races.some(x=>x.ph<=3))return alert("Génère d'abord les 3 motos.");
- if(S.races.some(x=>x.ph>3&&x.rows.some(w=>w.pos))&&!confirm('Les résultats des demis et finales seront effacés. Continuer?'))return;
- S.races=S.races.filter(x=>x.ph<=3);const warn=[];
- gnames().forEach(g=>{const rk=rank(g).map(o=>o.r.id),n=rk.length;
-  if(n<=8)return mk('F',g,'Finale A',rk);
-  let t=rk;if(n>16){t=rk.slice(0,16);warn.push(g+' ('+n+')')}
-  const d=[[],[]];t.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
-  d.forEach((ids,k)=>mk('D',g,'Demi '+(k+1),ids))});
- if(warn.length)alert('Plus de 16 coureurs (quarts de finale pas encore gérés). Seuls les 16 premiers du cumulatif vont en demi : '+warn.join(', '));
- tab='demis';save();render()}
-function genFinales(){
- const gs=[...new Set(S.races.filter(x=>x.ph==='D').map(x=>x.g))];
- if(!gs.length)return alert('Aucun demi à traiter.');
- S.races=S.races.filter(x=>!(x.ph==='F'&&gs.includes(x.g)));
- gs.forEach(g=>{const rk=rank(g).map(o=>o.r.id),sc={};
-  S.races.filter(x=>x.ph==='D'&&x.g===g).forEach(x=>x.rows.forEach(w=>sc[w.rid]=pts(+w.pos)));
-  const ids=Object.keys(sc).map(Number).sort((a,b)=>sc[b]-sc[a]||rk.indexOf(a)-rk.indexOf(b));
-  mk('F',g,'Finale A',ids.slice(0,8));if(ids.length>8)mk('F',g,'Finale B',ids.slice(8))});
- tab='finales';save();render()}
+
+// Vérifie qu'une position est saisie pour chaque coureur sur chacune des 3 motos.
+function motosCompletes(g){
+ const ids=S.riders.filter(r=>grp(r)===g).map(r=>r.id), wanted=new Set(ids);
+ if(!ids.length)return false;
+ for(let ph=1;ph<=3;ph++){
+  const races=S.races.filter(x=>Number(x.ph)===ph&&x.g===g), rows=races.flatMap(x=>x.rows);
+  // Une valeur explicite (position ou statut DNF/DNS/...) suffit; 0 est un résultat valide.
+  if(!races.length||rows.length!==wanted.size||new Set(rows.map(w=>w.rid)).size!==wanted.size||
+     rows.some(w=>!wanted.has(w.rid)||!hasResult(w.pos)))return false;
+ }
+ return true;
+}
+
+// Résumé par groupe des résultats manquants dans chacune des trois motos.
+function diagnosticDemis(g){
+ const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+ if(n<=8)return {g,n,direct:true,ready:false,motos:[]};
+ const motos=[1,2,3].map(ph=>{
+  const rows=S.races.filter(x=>Number(x.ph)===ph&&x.g===g).flatMap(x=>x.rows);
+  const missing=riders.filter(r=>{
+   const own=rows.filter(w=>w.rid===r.id);
+   return own.length!==1||!hasResult(own[0]?.pos);
+  }).map(r=>r.nom||`Coureur ${r.id}`);
+  return {moto:ph,missing};
+ });
+ return {g,n,direct:false,ready:motos.every(m=>m.missing.length===0),motos};
+}
+
+// Dans Finales, contrôler les trois motos pour tous les groupes, y compris les finales directes.
+function diagnosticFinalesMotos(g){
+ const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+ const motos=[1,2,3].map(ph=>{
+  const rows=S.races.filter(x=>Number(x.ph)===ph&&x.g===g).flatMap(x=>x.rows);
+  const missing=riders.filter(r=>{
+   const own=rows.filter(w=>w.rid===r.id);
+   return own.length!==1||!hasResult(own[0]?.pos);
+  }).map(r=>r.nom||`Coureur ${r.id}`);
+  return {moto:ph,missing};
+ });
+ return {g,n,direct:false,ready:n>0&&motos.every(m=>m.missing.length===0),motos};
+}
+
+// Les demis et finales sont dérivés des résultats; les portes existantes sont conservées.
+function auto(){
+ const wantedDemis=[];
+ for(const g of gnames()){
+  const riders=S.riders.filter(r=>grp(r)===g), n=riders.length;
+  if(n<=8||!motosCompletes(g))continue;
+  let ids=rank(g).map(o=>o.r.id);
+  if(n>16)ids=ids.slice(0,16);
+  const d=[[],[]];ids.forEach((rid,i)=>d[[0,1,1,0][i%4]].push(rid));
+  d.forEach((rows,k)=>wantedDemis.push({g,label:'Demi '+(k+1),ids:rows}));
+ }
+ const oldD=S.races.filter(x=>x.ph==='D');
+ const byD=new Map(oldD.map(x=>[x.g+'\u0000'+x.label,x]));
+ const nextD=wantedDemis.map(d=>{
+  const prev=byD.get(d.g+'\u0000'+d.label);
+  const same=prev&&prev.rows.length===d.ids.length&&prev.rows.every((w,i)=>w.rid===d.ids[i]);
+  const gates=new Map((prev?.rows||[]).map(w=>[w.rid,w.gate]));
+  const gt=shuf([1,2,3,4,5,6,7,8]);
+  return {id:prev?.id??S.uid++,ph:'D',g:d.g,label:d.label,pick:false,
+   rows:d.ids.map((rid,i)=>({rid,gate:gates.has(rid)?gates.get(rid):gt[i],pos:same?prev.rows[i].pos:''}))};
+ });
+ const demiChanged=oldD.length!==nextD.length||oldD.some((x,i)=>{
+  const y=nextD[i];return !y||x.id!==y.id||x.g!==y.g||x.label!==y.label||x.rows.length!==y.rows.length||
+   x.rows.some((w,j)=>w.rid!==y.rows[j].rid||w.gate!==y.rows[j].gate||w.pos!==y.rows[j].pos);
+ });
+ if(demiChanged){S.races=S.races.filter(x=>x.ph!=='D'&&x.ph!=='F').concat(nextD);}
+
+ const desiredF=[];
+ for(const g of gnames()){
+  const riders=S.riders.filter(r=>grp(r)===g),n=riders.length;
+  if(!riders.length||!motosCompletes(g))continue;
+  if(n<=8){desiredF.push({g,label:'Finale A',ids:rank(g).map(o=>o.r.id)});continue;}
+  const ds=S.races.filter(x=>x.ph==='D'&&x.g===g);
+  if(ds.length!==2||ds.some(x=>!x.rows.length||x.rows.some(w=>!hasResult(w.pos))))continue;
+  const motoRank=rank(g).map(o=>o.r.id), scores={};
+  ds.forEach(x=>x.rows.forEach(w=>scores[w.rid]=(scores[w.rid]||0)+pts(w.pos)));
+  const ids=Object.keys(scores).map(Number).sort((a,b)=>scores[b]-scores[a]||motoRank.indexOf(a)-motoRank.indexOf(b));
+  if(ids.length)desiredF.push({g,label:'Finale A',ids:ids.slice(0,8)});
+  if(ids.length>8)desiredF.push({g,label:'Finale B',ids:ids.slice(8)});
+ }
+ const oldF=S.races.filter(x=>x.ph==='F'),byF=new Map(oldF.map(x=>[x.g+'\u0000'+x.label,x]));
+ const nextF=desiredF.map(d=>{
+  const prev=byF.get(d.g+'\u0000'+d.label);
+  const same=prev&&prev.rows.length===d.ids.length&&prev.rows.every((w,i)=>w.rid===d.ids[i]);
+  const gates=new Map((prev?.rows||[]).map(w=>[w.rid,w.gate]));
+  return {id:prev?.id??S.uid++,ph:'F',g:d.g,label:d.label,pick:true,
+   rows:d.ids.map((rid,i)=>({rid,gate:gates.has(rid)?gates.get(rid):'',pos:same?prev.rows[i].pos:''}))};
+ });
+ const finalsChanged=oldF.length!==nextF.length||oldF.some((x,i)=>{
+  const y=nextF[i];return !y||x.id!==y.id||x.g!==y.g||x.label!==y.label||x.pick!==y.pick||x.rows.length!==y.rows.length||
+   x.rows.some((w,j)=>w.rid!==y.rows[j].rid||w.gate!==y.rows[j].gate||w.pos!==y.rows[j].pos);
+ });
+ if(finalsChanged){S.races=S.races.filter(x=>x.ph!=='F').concat(nextF);}
+ if(demiChanged||finalsChanged)save();
+}
+
 function setPos(xid,rid,el){
  const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
- w.pos=el.value===''?'':+el.value;$('#p'+xid+'_'+rid).textContent=pts(+w.pos);
- const ins=document.querySelectorAll('input[data-x="'+xid+'"]'),c={};
+ const n=x.rows.length;
+ if(el.value===''){
+  w.pos='';
+ } else {
+  const v=+el.value;
+  w.pos=(v>=0&&v<=n)?v:'';
+  if(w.pos==='')el.value='';
+ }
+ $('#p'+xid+'_'+rid).textContent=w.pos===0?'DNF':(w.pos===''?'':pts(w.pos));
+ const ins=document.querySelectorAll('select[data-x="'+xid+'"]'),c={};
  x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
- ins.forEach(i=>i.classList.toggle('dup',!!i.value&&c[+i.value]>1));save()}
+ ins.forEach(i=>i.classList.toggle('dup',!!i.value&&+i.value>0&&c[+i.value]>1));
+ save();auto();render();
+}
+
+function setGate(xid,rid,el){
+ const x=S.races.find(x=>x.id===xid);
+ x.rows.find(w=>w.rid===rid).gate=el.value===''?'':+el.value;
+ el.classList.toggle('vide',!el.value);
+ save();render();
+}
 
 // ===== Coureurs =====
 function addR(){const nom=$('#nn').value.trim();if(!nom)return;
  S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
-function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['age','f','go'].includes(k))render()}
+
+function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
+ let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
+ S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
+
+function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
+
 function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
 
-let importRows=[],importHeaders=[],importMap={},importFileName='';
-const importFields=[{key:'nom',label:'Nom',required:true},{key:'num',label:'Numéro',required:false},{key:'age',label:'Âge',required:true},{key:'f',label:'Fille',required:false}];
+
+let importRows=[];
+let importHeaders=[];
+let importMap={};
+let importFileName='';
+
+const importFields=[
+ {key:'nom',label:'Nom',required:true},
+ {key:'num',label:'Numéro',required:false},
+ {key:'age',label:'Âge',required:true},
+ {key:'f',label:'Fille',required:false}
+];
+
 function detectHeader(h){
- const s=String(h||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+ const s=String(h||'').toLowerCase()
+ .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+ .replace(/[^a-z0-9]/g,'');
+
  if(['nom','name','prenomnom','coureur','rider'].includes(s))return 'nom';
  if(['numero','num','no','bib','plate','plaque'].includes(s))return 'num';
  if(['age','annee','year'].includes(s))return 'age';
  if(['f','fille','female','sexe','gender'].includes(s))return 'f';
  return '';
 }
+
 async function loadImportFile(file){
  if(!file)return;
- importFileName=file.name;importRows=[];importHeaders=[];importMap={};
- $('#importResult').innerHTML='';$('#importPreview').innerHTML='';$('#importMapping').innerHTML='';$('#importBtn').disabled=true;
+
+ importFileName=file.name;
+ importRows=[];
+ importHeaders=[];
+ importMap={};
+
+ $('#importResult').innerHTML='';
+ $('#importPreview').innerHTML='';
+ $('#importMapping').innerHTML='';
+ $('#importBtn').disabled=true;
+
  try{
   const data=await file.arrayBuffer();
+
   const wb=XLSX.read(data,{type:'array'});
   const ws=wb.Sheets[wb.SheetNames[0]];
-  const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',blankrows:false});
-  if(raw.length<2)throw new Error('Le fichier doit contenir une ligne de titres et des données.');
-  importHeaders=raw[0].map((h,i)=>String(h||'Colonne '+(i+1)).trim());
-  importRows=raw.slice(1).filter(r=>r.some(v=>String(v??'').trim()!==''));
-  if(!importRows.length)throw new Error('Aucune donnée trouvée sous les titres.');
-  importFields.forEach(f=>{const i=importHeaders.findIndex(h=>detectHeader(h)===f.key);importMap[f.key]=i>=0?String(i):''});
-  $('#importInfo').innerHTML='<b>Fichier :</b> '+esc(importFileName)+'<br><b>Lignes détectées :</b> '+importRows.length+'<br><b>Feuille :</b> '+esc(wb.SheetNames[0]);
+
+  const raw=XLSX.utils.sheet_to_json(ws,{
+   header:1,
+   defval:'',
+   blankrows:false
+  });
+
+  if(raw.length<2)
+   throw new Error('Le fichier doit contenir une ligne de titres et des données.');
+
+  importHeaders=raw[0].map((h,i)=>
+   String(h||'Colonne '+(i+1)).trim()
+  );
+
+  importRows=raw.slice(1).filter(r=>
+   r.some(v=>String(v??'').trim()!=='')
+  );
+
+  if(!importRows.length)
+   throw new Error('Aucune donnée trouvée sous les titres.');
+
+  importFields.forEach(f=>{
+   const i=importHeaders.findIndex(h=>detectHeader(h)===f.key);
+   importMap[f.key]=i>=0?String(i):'';
+  });
+
+  $('#importInfo').innerHTML=
+   '<b>Fichier :</b> '+esc(importFileName)+
+   '<br><b>Lignes :</b> '+importRows.length+
+   '<br><b>Feuille :</b> '+esc(wb.SheetNames[0]);
+
   renderImportMapping();
- }catch(e){$('#importInfo').innerHTML='<span style="color:#ff7777">Erreur : '+esc(e.message)+'</span>'}
+
+ }catch(e){
+  $('#importInfo').innerHTML=
+   '<span style="color:#ff7777">Erreur : '+esc(e.message)+'</span>';
+ }
 }
+
 function renderImportMapping(){
- $('#importMapping').innerHTML='<h3>Association des colonnes</h3><p>Indique quelle colonne correspond à chaque donnée BMX.</p>'+
- importFields.map(f=>'<div class="row"><label style="min-width:100px">'+f.label+(f.required?' *':'')+'</label><select onchange="setImportMap(\''+f.key+'\',this.value)"><option value="">-- Non utilisé --</option>'+
-  importHeaders.map((h,i)=>'<option value="'+i+'" '+(importMap[f.key]===String(i)?'selected':'')+'>'+esc(h)+'</option>').join('')+'</select></div>').join('');
+ $('#importMapping').innerHTML=
+  '<h3>Colonnes</h3>'+
+  importFields.map(f=>
+   '<div class="row"><label>'+f.label+(f.required?' *':'')+'</label>'+
+   '<select onchange="setImportMap(\''+f.key+'\',this.value)">'+
+   '<option value="">-- Non utilisé --</option>'+
+   importHeaders.map((h,i)=>
+    '<option value="'+i+'"'+(importMap[f.key]===String(i)?' selected':'')+'>'+esc(h)+'</option>'
+   ).join('')+
+   '</select></div>'
+  ).join('');
+
  previewImport();
 }
-function setImportMap(key,value){importMap[key]=value;previewImport()}
-function importValue(row,key){const i=importMap[key];return i===''||i===undefined?'':row[+i]}
+
+function setImportMap(key,value){
+ importMap[key]=value;
+ previewImport();
+}
+
+function importValue(row,key){
+ const i=importMap[key];
+ return i===''||i===undefined?'':row[+i];
+}
+
 function validImportRow(row){
- const nom=String(importValue(row,'nom')||'').trim(),age=Number(importValue(row,'age'));
- return nom!==''&&importValue(row,'age')!==''&&Number.isFinite(age)&&age>=1&&age<=100;
+ const nom=String(importValue(row,'nom')||'').trim();
+ const age=Number(importValue(row,'age'));
+
+ return nom!==''&&
+ importValue(row,'age')!==''&&
+ Number.isFinite(age)&&age>=1&&age<=100;
 }
-function isFemale(v){return ['f','fille','female','oui','1','true','x'].includes(String(v||'').toLowerCase().trim())}
+
+function isFemale(v){
+ const s=String(v||'').toLowerCase().trim();
+ return ['f','fille','female','oui','1','true','x'].includes(s);
+}
+
 function previewImport(){
- const rows=importRows,valid=rows.filter(validImportRow),invalid=rows.length-valid.length;
- $('#importPreview').innerHTML='<h3>Aperçu des données</h3><p><b>'+valid.length+'</b> coureurs valides · <b>'+invalid+'</b> lignes ignorées</p><div style="overflow-x:auto"><table><tr><th>Nom</th><th>Numéro</th><th>Âge</th><th>Fille</th><th>État</th></tr>'+
- rows.slice(0,15).map(r=>'<tr><td>'+esc(importValue(r,'nom'))+'</td><td>'+esc(importValue(r,'num'))+'</td><td>'+esc(importValue(r,'age'))+'</td><td>'+(isFemale(importValue(r,'f'))?'Oui':'Non')+'</td><td>'+(validImportRow(r)?'✓':'⚠️ Invalide')+'</td></tr>').join('')+
- '</table></div>'+(rows.length>15?'<p class="mut">Aperçu des 15 premières lignes.</p>':'');
+ const rows=importRows;
+ const valid=rows.filter(validImportRow);
+ const invalid=rows.length-valid.length;
+
+ $('#importPreview').innerHTML=
+  '<h3>Aperçu</h3>'+
+  '<p><b>'+valid.length+'</b> valides · <b>'+invalid+'</b> ignorées · '+rows.length+' lignes au total</p>'+
+  '<div class="pv"><table>'+
+  '<thead><tr><th>Nom</th><th>N°</th><th>Âge</th><th>F</th><th></th></tr></thead>'+
+  '<tbody>'+
+  rows.map(r=>
+   '<tr'+(validImportRow(r)?'':' style="opacity:.55"')+'>'+
+   '<td>'+esc(importValue(r,'nom'))+'</td>'+
+   '<td>'+esc(importValue(r,'num'))+'</td>'+
+   '<td>'+esc(importValue(r,'age'))+'</td>'+
+   '<td>'+(isFemale(importValue(r,'f'))?'Oui':'Non')+'</td>'+
+   '<td>'+(validImportRow(r)?'✓':'⚠️')+'</td>'+
+   '</tr>'
+  ).join('')+
+  '</tbody></table></div>';
+
  $('#importBtn').disabled=valid.length===0;
- $('#importBtn').textContent='Importer les '+valid.length+' coureurs';
+ $('#importBtn').textContent='Importer '+valid.length+' coureurs';
 }
+
 function confirmImport(){
  const valid=importRows.filter(validImportRow);
+
  if(!valid.length)return alert('Aucun coureur valide.');
  if(!confirm('Importer '+valid.length+' coureurs dans cette course ?'))return;
+
  valid.forEach(row=>{
-  const nom=String(importValue(row,'nom')).trim(),num=String(importValue(row,'num')||'').trim(),age=Number(importValue(row,'age'));
-  const f=isFemale(importValue(row,'f'))||(age>100),realAge=age>100?age-100:age;
-  S.riders.push({id:S.uid++,nom,num,age:realAge,f,go:''});
+  const nom=String(importValue(row,'nom')).trim();
+  const num=String(importValue(row,'num')||'').trim();
+  const age=Number(importValue(row,'age'));
+  const f=isFemale(importValue(row,'f'))||(age>100);
+  const realAge=age>100?age-100:age;
+
+  S.riders.push({
+   id:S.uid++,
+   nom,
+   num,
+   age:realAge,
+   f,
+   go:''
+  });
  });
- save();render();alert(valid.length+' coureurs importés avec succès.');cancelImport();
+
+ save();
+ render();
+
+ alert(valid.length+' coureurs importés avec succès.');
+ cancelImport();
 }
+
 function cancelImport(){
- importRows=[];importHeaders=[];importMap={};importFileName='';
- const el=$('#importFile');if(el)el.value='';
+ importRows=[];
+ importHeaders=[];
+ importMap={};
+ importFileName='';
+
+ const el=$('#importFile');
+ if(el)el.value='';
+
  $('#importInfo').textContent='Aucun fichier sélectionné.';
- $('#importMapping').innerHTML='';$('#importPreview').innerHTML='';$('#importResult').innerHTML='';
- $('#importBtn').disabled=true;$('#importBtn').textContent='Importer les coureurs';
+ $('#importMapping').innerHTML='';
+ $('#importPreview').innerHTML='';
+ $('#importResult').innerHTML='';
+ $('#importBtn').disabled=true;
+ $('#importBtn').textContent='Importer les coureurs';
 }
+
 
 // ===== Vues =====
-const rc=x=>`<div class="card"><b>${esc(x.g)}</b> <span class="mut">${esc(x.label)}</span>
-<table><tr><th>Porte<th>N°<th>Nom<th>Pos<th>Pts</tr>${[...x.rows].sort((a,b)=>a.gate-b.gate).map(w=>{const r=R(w.rid)||{};
-const posCell=ro?`${esc(w.pos)||'—'}`:`<input type="number" min="1" max="8" value="${esc(w.pos)}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)">`;
-return`<tr><td><span class="plate">${w.gate}</span><td>${esc(r.num)}<td>${esc(r.nom)}<td>${posCell}<td id="p${x.id}_${w.rid}">${pts(+w.pos)}`}).join('')}</table></div>`;
-const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
-const V={
+
+const rc=x=>{
+ const n=x.rows.length;
+ const used=x.rows.map(w=>+w.gate).filter(Boolean);
+ const posCounts={};x.rows.forEach(w=>{if(w.pos!==''&&+w.pos>0)posCounts[w.pos]=(posCounts[w.pos]||0)+1});
+ const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
+ return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span>
+${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
+<table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
+const gate=x.pick
+ ?`<td class="ch">${i+1}<td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
+ :`<td><span class="gate-badge">${w.gate}</span>`;
+return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select class="${w.pos!==''&&+w.pos>0&&posCounts[w.pos]>1?'dup':''}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}></option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td class="pt" id="p${x.id}_${w.rid}">${w.pos===0?'DNF':(w.pos===''?'':pts(+w.pos))}`}).join('')}</table></div>`};
+
+  const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
+
+  // Ces diagnostics sont calculés au rendu depuis les données actuelles : aucun état mémorisé.
+  const diagnosticHtml=(checks,aria)=>{
+   if(!checks.length)return '';
+   return `<section class="demi-checks np" aria-label="${aria}">${checks.map(c=>{
+    if(c.direct)return `<article class="demi-check direct"><span class="gn">${esc(c.g)}</span><p class="check-direct">${esc(c.g)} : finale directe (${c.n} coureur${c.n>1?'s':''}).</p></article>`;
+    const details=c.motos.map(m=>m.missing.length
+     ?`<p class="check-missing">Moto ${m.moto} : il reste ${m.missing.length} coureur${m.missing.length>1?'s':''} sans résultat : ${m.missing.map(esc).join(', ')}</p>`
+     :`<p class="check-ok">Moto ${m.moto} : résultats complets</p>`).join('');
+    const semiDetails=(c.semiMissing||[]).map(d=>`<p class="check-missing">${esc(d.label)} : résultat manquant pour ${d.names.map(esc).join(', ')}</p>`).join('');
+    const title=c.title||`Groupe ${esc(c.g)} : résultats des motos manquants`;
+    return `<article class="demi-check"><span class="gn">${esc(c.g)}</span><p class="check-missing">${title}</p>${details}${semiDetails}</article>`;
+   }).join('')}</section>`;
+  };
+  const finaleState=g=>{
+   const c=diagnosticFinalesMotos(g);
+   if(!c.ready)return {...c,ready:false,title:`Groupe ${esc(g)} : résultats des motos manquants avant les finales`};
+   if(c.n<=8)return {...c,ready:true};
+   const ds=S.races.filter(x=>x.ph==='D'&&x.g===g);
+   const semiMissing=ds.filter(d=>!d.rows.length||d.rows.some(w=>!hasResult(w.pos))).map(d=>({
+    label:d.label,names:d.rows.filter(w=>!hasResult(w.pos)).map(w=>(R(w.rid)||{}).nom||`Coureur ${w.rid}`)
+   }));
+   if(ds.length!==2) return {...c,ready:false,title:`Groupe ${esc(g)} : demis non disponibles`,semiMissing:[]};
+   if(semiMissing.length)return {...c,ready:false,title:`Groupe ${esc(g)} : résultats des demis manquants`,semiMissing};
+   return {...c,ready:true};
+  };
+
+  const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button></div>
 
-<div class="card" style="margin:15px 0;border-left-color:var(--or)">
-<h2>IMPORTER DES COUREURS</h2>
-<p>Formats acceptés : CSV, XLS, XLSX</p>
-<div class="row"><input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])"></div>
-<div id="importInfo" class="mut">Aucun fichier sélectionné.</div>
+
+<details class="imp"><summary><h2>📥 Importer des coureurs (CSV / Excel)</h2></summary>
+<div class="box">
+<input type="file" id="importFile" accept=".csv,.xls,.xlsx" onchange="loadImportFile(this.files[0])">
+<div id="importInfo" class="mut" style="font-size:13px;margin-top:6px">Aucun fichier sélectionné.</div>
 <div id="importMapping"></div>
 <div id="importPreview"></div>
-<div class="row"><button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button><button onclick="cancelImport()">Annuler</button></div>
+<div class="row">
+<button class="p" id="importBtn" onclick="confirmImport()" disabled>Importer les coureurs</button>
+<button onclick="cancelImport()">Annuler</button>
+</div>
 <div id="importResult"></div>
 </div>
+</details>
+
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
 <p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
-<table><tr><th>Nom<th>N°<th>Âge<th>Fille<th>Groupe forcé<th>Groupe actuel<th></tr>${S.riders.map(r=>`<tr><td><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"><td><input value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"><td><input type="number" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"><td><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"><td><input list="gl" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"><td>${esc(grp(r))}<td><button onclick="delR(${r.id})">✕</button>`).join('')}</table>`,
-groupes:()=>`<h2>Points par position</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:64px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
-<h2>Groupes d'âge</h2><table><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
+<table class="riders"><thead><tr><th>Nom</th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${S.riders.map(r=>`<tr><td class="r-name" data-label="Nom"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num" data-label="N°"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age" data-label="Âge"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td class="r-sex" data-label="Fille"><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp" data-label="Groupe actuel">${esc(grp(r))}</td><td class="r-force" data-label="Groupe forcé"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td class="r-delete"><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
+groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:48px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
+<h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
-<p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p>`,
-motos:()=>`<div class="row np">${ro?'':'<button class="p" onclick="genMotos()">Générer les 3 motos</button>'}${[1,2,3].map(m=>`<button class="${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')}<button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph===mt,'Aucune moto générée.'),
-class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><b>${esc(g)}</b><table><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${esc(o.r.num)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
-demis:()=>`<div class="row np">${ro?'':'<button class="p" onclick="genDemis()">Générer demis (et finales directes)</button>'}<button onclick="print()">Imprimer</button></div>${ro?'':'<p class="mut">9 à 16 coureurs : 2 demis répartis selon le cumulatif des 3 motos. 8 et moins : finale directe (onglet Finales).</p>'}`+grid(x=>x.ph==='D','Aucun demi.'),
-finales:()=>`<div class="row np">${ro?'':'<button class="p" onclick="genFinales()">Générer finales A/B depuis les demis</button>'}<button onclick="print()">Imprimer</button></div>`+grid(x=>x.ph==='F','Aucune finale.'),
+<p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
+motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
+class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
+finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
-return`<div class="card"><b>${esc(g)}</b>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?'<span class="plate">'+esc(r.num)+'</span> '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
+return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
-const TABS_ORG=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
-const TABS_PUB=[['class','Classements'],['motos','Motos'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 
-const homeV=()=>`<h2>Courses publiées</h2>
-<div class="row np"><button class="${fToday?'on':''}" onclick="fToday=!fToday;loadPub()">Aujourd'hui</button>
-<input id="fq" placeholder="Rechercher par nom…" value="${esc(fQ)}" oninput="fQ=this.value;clearTimeout(window._fq);window._fq=setTimeout(loadPub,350)" style="min-width:220px"></div>
-${pubList.length?`<div class="grid">${pubList.map(c=>`<div class="card course" onclick="openPublic('${c.id}')"><b>${esc(c.nom)}</b><div class="mut">${new Date(c.updated_at).toLocaleString('fr-CA')}</div></div>`).join('')}</div>`:'<p class="mut">Aucune course publiée pour ces filtres.</p>'}`;
 
-const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion organisateur</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button><button onclick="goHome()">Retour aux courses</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
-let authStep='login',pendingEmail='';
-const verificationV=()=>`<div class="card" style="max-width:340px;margin:40px auto">
-<h2>Vérification du courriel</h2><p>Un code de vérification a été envoyé à :</p><p><b>${esc(pendingEmail)}</b></p>
-<div class="row"><input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="Code à 6 chiffres" style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
-<button class="p" onclick="verifyEmailCode()">Vérifier le code</button><button onclick="resendCode()">Renvoyer le code</button><button onclick="backToLogin()">Retour à la connexion</button></div>
-<p class="mut">Vérifie également tes courriels indésirables.</p></div>`;
 
-let showLogin=false;
+let authStep='login';
+let pendingEmail='';
+
+const verificationV=()=>`
+<div class="card" style="max-width:340px;margin:40px auto">
+<h2>Vérification du courriel</h2>
+<p>Un code de vérification a été envoyé à :</p>
+<p><b>${esc(pendingEmail)}</b></p>
+
+<div class="row">
+<input id="otp" type="text" inputmode="numeric"
+maxlength="6" placeholder="Code à 6 chiffres"
+style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
+
+<button class="p" onclick="verifyEmailCode()">Vérifier le code</button>
+<button onclick="resendCode()">Renvoyer le code</button>
+<button onclick="backToLogin()">Retour à la connexion</button>
+</div>
+<p class="mut">Vérifie également tes courriels indésirables.</p>
+</div>`;
+
+// Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
- const pubView=view==='public',orgView=view==='org',home=view==='home';
- const tabs=orgView?TABS_ORG:pubView?TABS_PUB:[];
- $('#nav').innerHTML=tabs.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
- $('#sel').style.display=orgView?'':'none';
- $('#bNew').style.display=orgView?'':'none';
- $('#bPub').style.display=orgView?'':'none';
- $('#bLog').textContent=orgView?'Déconnexion':'Login';
- $('#bLog').style.display=showLogin?'none':'';
- if(orgView){
-  $('#sel').innerHTML=courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)}${c.publique?' ●':''}</option>`).join('');
-  $('#bPub').textContent=isPub?'Dépublier':'Publier';
-  $('#bPub').className=isPub?'on':'';
- }
- let html;
- if(showLogin)html=authStep==='verify'?verificationV():loginV();
- else if(home)html=homeV();
- else html=(pubView?`<h2>${esc(pubName)} <span class="badge">LECTURE SEULE</span></h2>`:'')+V[tab]();
- $('#app').innerHTML=html;
+
+  // dans render(): si view==='public', afficher la liste ou la course en lecture seule
+if(view==='public'){
+  $('#pub').style.display=isOrg&&cid?'':'none';
+ $('#nav').innerHTML='<button onclick="view=\'pubList\';loadPub()">← Courses publiées</button>';
+ $('#app').innerHTML=V[tab]();
+ document.querySelectorAll('#app input,#app select,#app button.del').forEach(e=>e.disabled=true);
+ return;
+}
+if(view==='pubList'){
+ $('#app').innerHTML=`<div class="grid">${publicList.map(c=>`<div class="card"><span class="gn">${esc(c.nom)}</span><button class="p" onclick="openPublic('${c.id}')">Voir</button></div>`).join('')||'<p class="mut">Aucune course publiée.</p>'}</div>`;
+ return;
 }
 
-// ===== Sauvegarde =====
+ const locked=sb&&!user;
+ if(!locked)auto();
+ $('#lo').style.display=sb&&user?'':'none';
+ $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ $('#sel').style.display=sb&&user?'':'none';
+  $('#sel').innerHTML=courses.length
+  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
+  :'<option value="">(aucune course sauvegardée)</option>';
+ if(typeof V[tab]!=="function")tab="coureurs";
+ $('#app').innerHTML=locked?
+  (authStep==='verify'?verificationV():loginV())
+  :V[tab]();
+}
+
+// ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
-let tm;function save(){
- if(ro)return;
- localStorage.bmx_S=JSON.stringify(S);
- if(!sb||!cid||view!=='org')return stat('Sauvegardé sur cet appareil');
+let tm=null,saveInFlight=false;
+function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
- tm=setTimeout(async()=>{const{error}=await sb.from('courses').update({data:S,updated_at:new Date().toISOString()}).eq('id',cid);
-  stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé')},600)}
-async function loadList(){const{data}=await sb.from('courses').select('id,nom,publique').order('updated_at',{ascending:false});courses=data||[]}
-async function openC(id){const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
- if(error)return alert(error.message);cid=id;S=Object.assign(DEF(),data.data);isPub=!!data.publique;localStorage.bmx_cid=id}
-async function newC(){const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');if(!nom)return;
- if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
- S=Object.assign(DEF(),{points:S.points,groups:S.groups});
- if(sb){const{data,error}=await sb.from('courses').insert({nom,data:S}).select().single();if(error)return alert('Une course porte déjà ce nom');cid=data.id;isPub=false;await loadList()}
- tab='coureurs';save();render()}
-async function reload(){
- if(view==='public'&&cid){await openPublic(cid);stat('Données rechargées');return}
- if(sb&&cid&&view==='org'){await openC(cid);render();stat('Données rechargées')}
- else if(view==='home')loadPub()}
+ tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();const payload=JSON.parse(JSON.stringify(S));
+  try{
+   const{error}=await sb.from('courses').update({data:payload,updated_at:now}).eq('id',cid);
+   stat(error?'Hors ligne : données gardées sur cet appareil':'Sauvegardé');
+   if(!error){lastSync=now;lastSyncData=stableStringify(payload);const c=courses.find(x=>x.id===cid);if(c){c.updated_at=now;
+    const o=document.querySelector('#sel option[value="'+cid+'"]');
+    if(o)o.textContent=c.nom+' · '+new Date(now).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'})}}
+  }finally{saveInFlight=false}
+ },600)}
 
-// ===== Publier =====
-async function togglePub(){
- if(!cid)return;
- const next=!isPub;
- if(next&&!confirm('Publier cette course ? Tout le monde pourra voir les classements en lecture seule.'))return;
- const{error}=await sb.rpc('set_course_public',{p_id:cid,p_pub:next});
- if(error)return alert('Erreur : '+(error.message||JSON.stringify(error)));
- isPub=next;
- const c=courses.find(c=>c.id===cid);if(c)c.publique=next;
- const link=location.origin+location.pathname+'?c='+cid;
- render();
- if(next)prompt('Course publiée. Lien à partager :',link);
- else stat('Course dépubliée')}
+async function loadList(){
+  const{data}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',
+  {ascending:false});courses=data||[]}
 
-// ===== Vue publique =====
-async function loadPub(){
- if(!sb)return;
- const{data,error}=await sb.rpc('list_public_courses',{p_today:fToday,p_q:fQ.trim()});
- if(error){stat('Erreur de chargement');pubList=[]}else{pubList=data||[];stat('')}
- if(view==='home'&&!showLogin){
-  const q=document.getElementById('fq'),had=q&&document.activeElement===q,pos=q?q.selectionStart:0;
+async function openC(id){
+  const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
+
+let creating=false;
+async function newC(){
+ if(creating)return;
+ creating=true;
+ try{
+  const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');
+  if(!nom||!nom.trim())return;
+  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
+  const nouveau=Object.assign(DEF(),{points:S.points,groups:S.groups});
+  if(sb){
+   const{data,error}=await sb.from('courses').insert({nom:nom.trim(),data:nouveau}).select().single();
+   if(error){
+    return alert(error.code==='23505'
+     ?'Une course porte déjà ce nom'
+     :'Erreur : '+error.message);
+   }
+   cid=data.id;
+   localStorage.bmx_cid=cid;
+   await loadList();
+  }
+  S=nouveau;
+  tab='coureurs';
+  save();
   render();
-  if(had){const n=document.getElementById('fq');n.focus();n.setSelectionRange(pos,pos)}}}
+ }finally{
+  creating=false;
+ }
+}
+
+async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
+
+async function login(){
+ try{stat('Connexion…');const A=sb.auth,c={email:$('#em').value.trim(),password:$('#pw').value};
+  const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
+  if(r&&r.error){stat('');return alert('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
+  user=true;await boot();stat('');render();
+  authStep='login';
+ }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
+
+async function logout(){
+ if(!confirm('Se déconnecter?'))return;
+ try{
+  stat('Déconnexion…');
+  await sb.auth.signOut();
+ }catch(e){}
+ user=null;cid=null;courses=[];
+ S=DEF();
+ localStorage.removeItem('bmx_cid');
+ localStorage.removeItem('bmx_S');
+ authStep='login';
+ tab='coureurs';
+ stat('');
+ render();
+}
+
+async function signup(){
+ const em=$('#em').value.trim(),pw=$('#pw').value;
+
+ if(!em||!em.includes('@')||pw.length<8)
+   return alert('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
+
+ try{
+  stat('Création du compte…');
+
+  const r=await sb.auth.signUp.email({
+    email:em,
+    password:pw,
+    name:em.split('@')[0]
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Création refusée : '+r.error.message);
+  }
+
+  pendingEmail=em;
+  authStep='verify';
+  stat('');
+  render();
+
+  alert('Compte créé. Entre le code envoyé par courriel.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur à la création : '+(e.message||e));
+ }
+}
+
+
+async function verifyEmailCode(){
+ const otp=$('#otp').value.trim();
+
+ if(!/^\d{6}$/.test(otp))
+   return alert('Entre le code à 6 chiffres.');
+
+ try{
+  stat('Vérification…');
+
+  const r=await sb.auth.emailOtp.verifyEmail({
+    email:pendingEmail,
+    otp:otp
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Code refusé : '+r.error.message);
+  }
+
+  try{await sb.auth.signOut()}catch(e){}
+
+  user=null;
+  authStep='login';
+  stat('');
+  render();
+
+  alert('Courriel vérifié ! Tu peux maintenant te connecter.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur de vérification : '+(e.message||e));
+ }
+}
+ 
+async function resendCode(){
+ try{
+  stat('Envoi du code…');
+
+  const r=await sb.auth.emailOtp.sendVerificationOtp({
+    email:pendingEmail,
+    type:'email-verification'
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Erreur : '+r.error.message);
+  }
+
+  stat('');
+  alert('Un nouveau code a été envoyé.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur : '+(e.message||e));
+ }
+}
+
+function backToLogin(){
+ authStep='login';
+ render();
+ stat('');
+}
+
+async function renC(){
+ if(!sb||!cid)return;
+ const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
+ const{error}=await sb.from('courses').update({nom}).eq('id',cid);
+ if(error)return alert(error.message);
+ await loadList();render()}
+ 
+async function delC(){
+ if(!sb||!cid)return;
+ const c=courses.find(c=>c.id===cid);
+ if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
+ const{error}=await sb.from('courses').delete().eq('id',cid);
+ if(error)return alert(error.message);
+ cid=null;await loadList();
+ if(courses[0])await openC(courses[0].id);else await newC();
+ render()}
+
+
+let booting=false;
+async function boot(){
+ if(booting)return;
+ booting=true;
+ try{
+  await loadList();
+  const id=localStorage.bmx_cid;
+  if(courses.find(c=>c.id===id))await openC(id);
+  else if(courses[0])await openC(courses[0].id);
+  else await newC();
+ }finally{
+  booting=false;
+ }
+}
+
+// ===== Rafraîchissement automatique =====
+let lastSync='';
+let lastSyncData='';
+let lastTry=0,syncInFlight=false;
+
+// Comparaison du contenu (et non de l'horloge locale/serveur), stable même si
+// les clés d'un objet JSON sont renvoyées dans un ordre différent.
+function stableStringify(value){
+ if(value===null||typeof value!=='object')return JSON.stringify(value);
+ if(Array.isArray(value))return '['+value.map(stableStringify).join(',')+']';
+ return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableStringify(value[k])).join(',')+'}';
+}
+
+// render() remplace le DOM de l'onglet. Garder le focus, la sélection et un
+// éventuel brouillon encore non validé dans le champ actuellement édité.
+function renderPreservingFocus(){
+ const root=$('#app'),active=document.activeElement;
+ let path=null,oldValue=null,oldChecked=null,isCheck=false,start=null,end=null,direction=null;
+ if(root&&active&&root.contains(active)){
+  path=[];let node=active;
+  while(node&&node!==root){
+   const parent=node.parentNode;if(!parent){path=null;break}
+   path.unshift(Array.prototype.indexOf.call(parent.childNodes,node));node=parent;
+  }
+  if(active.matches('input,textarea,select')){
+   oldValue=active.value;
+   isCheck=active.matches('input[type=checkbox],input[type=radio]');
+   if(isCheck)oldChecked=active.checked;
+   if(typeof active.selectionStart==='number'){start=active.selectionStart;end=active.selectionEnd;direction=active.selectionDirection}
+  }
+ }
+ render();
+ if(!path)return;
+ let node=root;
+ for(const index of path){node=node&&node.childNodes[index]}
+ if(!node||typeof node.focus!=='function')return;
+ try{
+  node.focus({preventScroll:true});
+  // Si le champ contenait une saisie pas encore validée, ne la jette pas:
+  // le nouvel état distant est déjà appliqué aux autres éléments.
+  if(isCheck&&node.matches('input[type=checkbox],input[type=radio]'))node.checked=oldChecked;
+  else if(oldValue!==null&&node.matches('input,textarea,select')&&node.value!==oldValue){
+   node.value=oldValue;
+   if(start!==null&&typeof node.setSelectionRange==='function')node.setSelectionRange(Math.min(start,oldValue.length),Math.min(end,oldValue.length),direction||'none');
+  }else if(start!==null&&typeof node.setSelectionRange==='function'){
+   const length=node.value.length;node.setSelectionRange(Math.min(start,length),Math.min(end,length),direction||'none');
+  }
+ }catch(e){}
+}
+
+async function autoSync(){
+ lastTry=Date.now();
+ if(!sb||!cid||!user||tm!==null||syncInFlight)return;
+ syncInFlight=true;
+ try{
+  const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
+  if(error||!data)return;
+  const remote=stableStringify(data.data);
+  if(remote!==lastSyncData){
+   lastSync=data.updated_at;
+   S=Object.assign(DEF(),data.data);
+   lastSyncData=stableStringify(S);
+   // Re-render même pendant l'édition, en conservant le focus et le brouillon.
+   renderPreservingFocus();
+   stat('Mis à jour automatiquement');
+  }
+ }catch(e){}finally{syncInFlight=false}
+}
+setInterval(autoSync,5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoSync()});
+window.addEventListener('focus',autoSync);
+window.addEventListener('pageshow',autoSync);
+window.addEventListener('online',autoSync);
+document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync()},{passive:true});
+
+// Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
+function installNoCacheFetch(){
+ if(window.__bmxNoCacheFetchInstalled||!window.fetch)return;
+ const originalFetch=window.fetch.bind(window);
+ window.fetch=(input,init)=>{
+  const url=typeof input==='string'?input:(input&&input.url)||'';
+  const method=((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+  if(method==='GET'&&url.startsWith(NEON_DATA_URL)){
+   return originalFetch(input,Object.assign({},init,{cache:'no-store'}));
+  }
+  return originalFetch(input,init);
+ };
+ window.__bmxNoCacheFetchInstalled=true;
+}
+
+async function togglePublic(){
+ if(!sb||!cid)return;
+ const c=courses.find(x=>x.id===cid), on=!(c&&c.publique);
+ const{error}=await sb.rpc('set_course_public',{p_id:cid,p_pub:on});
+ if(error)return alert(error.message);
+ await loadList();render();
+ stat(on?'Course publiée':'Course dépubliée');
+}
+
+async function loadPub(){
+ const{data,error}=await sb.rpc('list_public_courses',{p_today:false,p_q:''});
+ if(error)return alert(error.message);
+ publicList=data||[];render();
+}
+
 async function openPublic(id){
  const{data,error}=await sb.rpc('get_public_course',{p_id:id});
  if(error||!data)return alert('Course introuvable ou non publiée.');
- cid=id;pubName=data.nom;S=Object.assign(DEF(),data.data);
- ro=true;view='public';tab='class';showLogin=false;
- history.replaceState(null,'','?c='+id);render()}
-function goHome(){
- ro=false;view='home';showLogin=false;authStep='login';
- history.replaceState(null,'',location.pathname);
- if(sb)loadPub();else render()}
+ S=Object.assign(DEF(),data.data);cid=id;view='public';render();
+}
 
-// ===== Authentification =====
 async function silentPublic(){
- try{
-  const A=sb.auth,c={email:PUBLIC_EMAIL,password:PUBLIC_PW};
-  const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
-  if(r&&r.error)return false;
-  return true;
- }catch(e){return false}}
-async function loginBtn(){
- if(view==='org'){
-  try{await sb.auth.signOut()}catch(e){}
-  user=null;isOrg=false;cid=null;S=DEF();
-  await silentPublic();goHome();return}
- showLogin=true;authStep='login';render()}
-async function login(){
- try{stat('Connexion…');
-  try{await sb.auth.signOut()}catch(e){}
-  const A=sb.auth,c={email:$('#em').value.trim(),password:$('#pw').value};
-  const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
-  if(r&&r.error){stat('');await silentPublic();return alert('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
-  user=true;isOrg=true;ro=false;showLogin=false;view='org';
-  await boot();stat('');render();
- }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
-async function signup(){
- const em=$('#em').value.trim(),pw=$('#pw').value;
- if(!em||!em.includes('@')||pw.length<8)return alert('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
- try{stat('Création du compte…');
-  const r=await sb.auth.signUp.email({email:em,password:pw,name:em.split('@')[0]});
-  if(r&&r.error){stat('');return alert('Création refusée : '+r.error.message)}
-  pendingEmail=em;authStep='verify';stat('');render();
-  alert('Compte créé. Entre le code envoyé par courriel.');
- }catch(e){stat('');alert('Erreur à la création : '+(e.message||e))}}
-async function verifyEmailCode(){
- const otp=$('#otp').value.trim();
- if(!/^\d{6}$/.test(otp))return alert('Entre le code à 6 chiffres.');
- try{stat('Vérification…');
-  const r=await sb.auth.emailOtp.verifyEmail({email:pendingEmail,otp});
-  if(r&&r.error){stat('');return alert('Code refusé : '+r.error.message)}
-  try{await sb.auth.signOut()}catch(e){}
-  user=null;authStep='login';stat('');render();
-  alert('Courriel vérifié ! Tu peux maintenant te connecter.');
- }catch(e){stat('');alert('Erreur de vérification : '+(e.message||e))}}
-async function resendCode(){
- try{stat('Envoi du code…');
-  const r=await sb.auth.emailOtp.sendVerificationOtp({email:pendingEmail,type:'email-verification'});
-  if(r&&r.error){stat('');return alert('Erreur : '+r.error.message)}
-  stat('');alert('Un nouveau code a été envoyé.');
- }catch(e){stat('');alert('Erreur : '+(e.message||e))}}
-function backToLogin(){authStep='login';render();stat('')}
-
-async function boot(){await loadList();const id=localStorage.bmx_cid;
- if(courses.find(c=>c.id===id))await openC(id);else if(courses[0])await openC(courses[0].id);
- else await newC()}
+ const{error}=await sb.auth.signIn.email({email:PUBLIC_EMAIL,password:PUBLIC_PW});
+ if(error)throw new Error('Compte public indisponible');
+}
 
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
   try{
+   installNoCacheFetch();
    const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
-   const{data}=await sb.auth.getSession();
-   const sess=data&&data.session;
-   const em=sess&&sess.user&&sess.user.email;
-   if(sess&&em&&em!==PUBLIC_EMAIL){
-    user=true;isOrg=true;view='org';await boot();
-   }else{
-    if(!sess)await silentPublic();
-    const cparam=new URLSearchParams(location.search).get('c');
-    if(cparam)await openPublic(cparam);else await loadPub();
-   }
-  }catch(e){sb=null;alert('Connexion à Neon impossible : '+e.message)}
+   const{data:sessionData}=await sb.auth.getSession();
+const em=sessionData&&sessionData.session&&sessionData.session.user&&sessionData.session.user.email;
+if(em&&em!==PUBLIC_EMAIL){user=true;isOrg=true;view='org';await boot()}
+else{
+ if(!sessionData||!sessionData.session)await silentPublic();
+ const cparam=new URLSearchParams(location.search).get('c');
+ if(cparam)await openPublic(cparam);else{view='pubList';await loadPub()}
+}
+  }catch(e){
+   sb=null;
+   alert('Connexion à Neon impossible : '+e.message);
+  }
  }
- if(!sb){view='org';try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S))}catch(e){}}
- render()})();
-</script></body></html>
+ render();
+})();
+
+</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+</body></html>
