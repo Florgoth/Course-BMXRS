@@ -685,8 +685,16 @@ function liveRace(x){
  const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
 }
+let liveMoto=1;
 function liveView(){
- if(tab==='live-class')return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}</tr>`).join('')}</table></div>`).join('')}</div>`;
+ if(tab==='live-class'){
+  const buttons=[1,2,3].map(m=>`<button type="button" class="mb ${m===liveMoto?'on':''}" aria-pressed="${m===liveMoto}" onclick="liveMoto=${m};render()">Moto ${m}</button>`).join('');
+  const sections=[1,2,3].map(m=>{
+   const races=S.races.filter(x=>Number(x.ph)===m);
+   return `<section class="live-moto-results" data-moto="${m}" ${m===liveMoto?'':'hidden'}><h2>Moto ${m}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}</section>`;
+  }).join('');
+  return `<h2>Classements en direct</h2><div class="row np mototabs" aria-label="Sélectionner une moto">${buttons}</div>${sections}`;
+ }
  if(tab==='live-podiums')return `<h2>Podiums</h2><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return '';return `<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map((p)=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return `<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`;
  const phase=tab==='live-motos'?null:tab==='live-demis'?'D':'F';
  const races=S.races.filter(x=>phase===null?([1,2,3].includes(Number(x.ph))):x.ph===phase);
