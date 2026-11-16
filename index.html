@@ -19,8 +19,6 @@ header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;
 h1{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:28px;margin:0 auto 0 0;color:var(--pk);letter-spacing:1.5px;line-height:1}
 h2{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;color:var(--ye);font-size:20px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:1px}
 nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;background:#25272b}
-.course-picker{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.5px}.course-picker select{max-width:min(42vw,340px);font-size:14px;text-transform:none;letter-spacing:0}
-@media(max-width:600px){.course-picker{flex:1;min-width:0}.course-picker select{flex:1;min-width:0;max-width:100%}}
 button,select,input,textarea{font:inherit;color:var(--tx);background:#34373c;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button:hover{border-color:var(--or)}
 button.ico{background:none;border-color:transparent;color:var(--mut);padding:6px;display:inline-flex;align-items:center}
@@ -148,74 +146,11 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
+</style></head><body>
 
-/* Accueil partagé, modales et états en lecture seule */
-body.homeMode{background:radial-gradient(ellipse at 85% 0%,#442231 0,transparent 38%),var(--bg)}
-#homeView{max-width:1050px;margin:auto;padding:clamp(18px,5vw,56px) 16px 50px}
-#homeView[hidden],.modal[hidden]{display:none!important}
-.home-head{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:3px solid var(--pk);padding:8px 0 18px}
-.home-brand{font:42px/1 'Bebas Neue',Impact,sans-serif;color:var(--pk);letter-spacing:2px;margin:0}
-.home-tag{font-size:13px;color:var(--ye);text-transform:uppercase;letter-spacing:2px}
-.home-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.home-actions button,.race-actions button{font-weight:750}
-.home-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:end;padding:38px 0 24px}
-.home-hero h2{font-size:clamp(36px,7vw,64px);line-height:.95;margin:0;color:var(--ye)}
-.home-hero p{margin:10px 0 0;color:#c7c7c7;max-width:550px}
-.home-filters{display:grid;grid-template-columns:1fr minmax(170px,.5fr);gap:10px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
-.home-filters label,.modal label{display:flex;flex-direction:column;gap:5px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.7px}
-.home-filters input,.modal input{width:100%;padding:10px}
-#publicCourses{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;margin-top:14px}
-.public-race{background:linear-gradient(145deg,#2b2d31,#242528);border:1px solid var(--line);border-top:3px solid var(--pk);border-radius:9px;padding:14px;min-width:0;animation:rise .3s both}
-.public-race h3{margin:0 0 6px;font-size:18px;color:var(--tx);overflow-wrap:anywhere}
-.public-race .date{color:var(--ye);font-size:13px}
-.public-race .race-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
-.home-message{padding:16px;border:1px dashed var(--line);border-radius:8px;color:var(--mut);grid-column:1/-1}
-.home-error{color:#ff9e9e;border-color:#8c3b3b}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.modal{position:fixed;inset:0;background:#09090bcc;z-index:10000;display:grid;place-items:center;padding:16px}
-.modal-card{width:min(100%,430px);background:#26282c;border:1px solid #555;border-top:4px solid var(--pk);border-radius:12px;padding:20px;box-shadow:0 18px 65px #000b}
-.modal-card h2{margin:0 0 14px;font-size:25px}
-.modal-card .row{margin-top:14px}
-.modal-close{float:right;background:transparent;border:0;font-size:24px;color:var(--mut)}
-.modal-close:hover{color:#f44}
-#draftBanner{display:none;margin:10px 0;padding:12px;border:2px solid var(--ye);border-radius:8px;background:#3a3115;color:var(--ye);font-weight:850;letter-spacing:.4px}
-body.volunteerMode #draftBanner{display:block}
-#draftBanner small{display:block;color:#eee;font-weight:500}
-
-@media(max-width:650px){.home-head{align-items:flex-start;flex-direction:column}}
-
-/* Ajustements ciblés pour l’accueil public sur téléphone */
-@media (max-width:600px){
- body.homeMode{overflow-x:hidden}
- #homeView{width:100%;min-width:0;padding:12px 12px 28px}
- .home-head{gap:10px;padding:4px 0 12px;min-width:0}
- .home-head>div,.home-actions{width:100%;min-width:0}
- .home-brand{font-size:36px}
- .home-tag{font-size:11px;letter-spacing:1.4px}
- .home-actions{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:7px}
- .home-actions button{width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;padding:9px 10px}
- .home-hero{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:20px 0 16px;min-width:0}
- .home-hero>div,.home-filters,.home-filters label{min-width:0;width:100%}
- .home-hero h2{font-size:clamp(34px,10vw,44px);line-height:.98}
- .home-hero p{margin:7px 0 0}
- .home-filters{grid-template-columns:minmax(0,1fr);gap:8px;padding:10px}
- .home-filters input{width:100%;min-width:0;font-size:16px}
- #publicCourses{grid-template-columns:minmax(0,1fr);gap:10px;width:100%;min-width:0}
- .public-race{width:100%;min-width:0;padding:12px}
- .public-race h3{min-width:0;font-size:18px;line-height:1.2;overflow-wrap:anywhere;word-break:normal}
- .public-race .date{display:block;margin-top:4px;overflow-wrap:anywhere}
- .public-race .race-actions{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin-top:10px;min-width:0}
- .public-race .race-actions button{width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
- #homeView>h2{margin:12px 0 6px;font-size:19px}
-}
-</style></head><body class="homeMode">
-
-<div id="homeView"></div>
-<div class="modal" id="loginModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><button class="modal-close" onclick="closeModal('loginModal')" aria-label="Fermer">✕</button><h2 id="loginTitle">Connexion officielle</h2><p class="mut">Commissaires et organisateurs</p><form onsubmit="event.preventDefault();login()"><label>Courriel<input id="authEmail" type="email" autocomplete="username" required></label><label style="margin-top:10px">Mot de passe<input id="authPassword" type="password" autocomplete="current-password" required></label><div class="row"><button class="p" type="submit">Se connecter</button><button type="button" onclick="closeModal('loginModal')">Annuler</button></div></form><p class="mut" id="loginMsg" role="status"></p></div></div>
-<div class="modal" id="volunteerModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="volunteerTitle"><button class="modal-close" onclick="closeModal('volunteerModal')" aria-label="Fermer">✕</button><h2 id="volunteerTitle">Accès bénévole</h2><p class="mut">Le brouillon est enregistré uniquement sur cet appareil et ne modifie jamais la course officielle.</p><form onsubmit="event.preventDefault();unlockVolunteer()"><label>Mot secret<input id="volunteerSecret" type="password" autocomplete="off" required></label><div class="row"><button class="p" type="submit">Ouvrir ma feuille</button><button type="button" onclick="closeModal('volunteerModal')">Annuler</button></div></form><p class="mut" id="volunteerMsg" role="status"></p></div></div>
 <header>
 <h1>BMX RACE · COURSE LOCALE</h1>
-<label id="coursePickerLabel" class="course-picker" for="sel">Course <select id="sel" aria-label="Changer de course" onchange="switchCourse(this.value)"></select></label>
+<select id="sel" onchange="openC(this.value).then(render)"></select>
 
 <button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
 
@@ -235,8 +170,6 @@ body.volunteerMode #draftBanner{display:block}
 </svg>
 </button>
 
-
-
 <button class="ico" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/>
@@ -245,9 +178,6 @@ body.volunteerMode #draftBanner{display:block}
 <polyline points="21 20 21 15 16 15"/>
 </svg>
 </button>
-
-<button id="btnLogin" onclick="openLogin()">Connexion Organisateur</button>
-<button id="btnShare" onclick="togglePublic()" style="display:none">Partager publiquement</button>
 
 <button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">⏻</button>
 <span id="who" class="mut"></span>
@@ -261,18 +191,14 @@ body.volunteerMode #draftBanner{display:block}
 <script>
 // ===== Configuration Neon (laisser vide = mode local, sans compte) =====
 // Console Neon > Auth : URL d'authentification. Console Neon > Data API : URL de l'API.
-const NEON_AUTH_URL='https://ep-green-boat-be6lpg3y.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-green-boat-be6lpg3y.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
+const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
 let sb=null;
-let view='org',publicList=[];
 
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
  const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
-let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[],courseRoles=Object.create(null);
-// Mot secret modifiable côté client : ne constitue pas un mécanisme de sécurité serveur.
-const VOLUNTEER_SECRET='BMX-BENEVOLE';
-let homeMode=true,editRole='visitor',volunteerMode=false,publicCourses=[],publicLoadError='',selectedPublic=null,currentPublic=null,authSession=null,draftMoto=1,draftState={};
+let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
@@ -295,7 +221,6 @@ function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv)
  for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
 
 function genMotos(){
- if(editRole!=='organisateur')return;
  if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
  S.races=[];
  for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
@@ -404,36 +329,40 @@ function auto(){
 }
 
 function setPos(xid,rid,el){
- const x=S.races.find(x=>String(x.id)===String(xid)),w=x&&x.rows.find(w=>String(w.rid)===String(rid));
- if(!x||!w)return;
- if(volunteerMode){if(Number(x.ph)<1||Number(x.ph)>3)return;draftState.positions[`${x.id}_${rid}`]=el.value;saveDraft();render();return}
- if(editRole!=='organisateur')return;
+ const x=S.races.find(x=>x.id===xid),w=x.rows.find(w=>w.rid===rid);
  const n=x.rows.length;
- if(el.value===''){w.pos=''}else{const v=+el.value;w.pos=(v>=0&&v<=n)?v:'';if(w.pos==='')el.value=''}
- const pCell=$('#p'+xid+'_'+rid);if(pCell)pCell.textContent=w.pos===0?'DNF':(w.pos===''?'':pts(w.pos));
+ if(el.value===''){
+  w.pos='';
+ } else {
+  const v=+el.value;
+  w.pos=(v>=0&&v<=n)?v:'';
+  if(w.pos==='')el.value='';
+ }
+ $('#p'+xid+'_'+rid).textContent=w.pos===0?'DNF':(w.pos===''?'':pts(w.pos));
  const ins=document.querySelectorAll('select[data-x="'+xid+'"]'),c={};
- x.rows.forEach(row=>{if(row.pos)c[row.pos]=(c[row.pos]||0)+1});
+ x.rows.forEach(w=>{if(w.pos)c[w.pos]=(c[w.pos]||0)+1});
  ins.forEach(i=>i.classList.toggle('dup',!!i.value&&+i.value>0&&c[+i.value]>1));
  save();auto();render();
 }
+
 function setGate(xid,rid,el){
- const x=S.races.find(x=>String(x.id)===String(xid)),w=x&&x.rows.find(w=>String(w.rid)===String(rid));if(!x||!w)return;
- if(editRole==='commissaire'){if(x.ph!=='F'||!x.pick)return;w.gate=el.value===''?'':+el.value;el.classList.toggle('vide',!el.value);saveGatePick(x,rid,w.gate);render();return}
- if(editRole!=='organisateur')return;
- w.gate=el.value===''?'':+el.value;el.classList.toggle('vide',!el.value);save();render();
+ const x=S.races.find(x=>x.id===xid);
+ x.rows.find(w=>w.rid===rid).gate=el.value===''?'':+el.value;
+ el.classList.toggle('vide',!el.value);
+ save();render();
 }
 
 // ===== Coureurs =====
-function addR(){if(editRole!=='organisateur')return;const nom=$('#nn').value.trim();if(!nom)return;
+function addR(){const nom=$('#nn').value.trim();if(!nom)return;
  S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
 
-function impR(){if(editRole!=='organisateur')return;let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
+function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
  let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
  S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
 
-function upd(id,k,v){if(editRole!=='organisateur')return;const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
+function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
 
-function delR(id){if(editRole!=='organisateur')return;S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
+function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
 
 
 let importRows=[];
@@ -634,14 +563,17 @@ function cancelImport(){
 // ===== Vues =====
 
 const rc=x=>{
- const n=x.rows.length,used=x.rows.map(w=>+w.gate).filter(Boolean);
- const posCounts={};x.rows.forEach(w=>{const pv=volunteerMode?(draftState.positions?.[`${x.id}_${w.rid}`]??''):w.pos;if(pv!==''&&+pv>0)posCounts[pv]=(posCounts[pv]||0)+1});
+ const n=x.rows.length;
+ const used=x.rows.map(w=>+w.gate).filter(Boolean);
+ const posCounts={};x.rows.forEach(w=>{if(w.pos!==''&&+w.pos>0)posCounts[w.pos]=(posCounts[w.pos]||0)+1});
  const rows=x.pick?x.rows:[...x.rows].sort((a,b)=>a.gate-b.gate);
- return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span>${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
-<table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{},pv=volunteerMode?(draftState.positions?.[`${x.id}_${w.rid}`]??''):w.pos;
-const gate=x.pick?`<td class="ch">${i+1}<td>${(editRole==='organisateur'||(editRole==='commissaire'&&x.ph==='F'&&x.pick))&&!volunteerMode?`<select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`:`<span class="gate-badge">${esc(w.gate||'—')}</span>`}`:`<td><span class="gate-badge">${esc(w.gate)}</span>`;
-const posCtl=volunteerMode?`<select onchange="setPos(${x.id},${w.rid},this)"><option value=""${pv===''?' selected':''}></option><option value="0"${String(pv)==='0'?' selected':''}>DNF</option>${Array.from({length:n},(_,j)=>`<option value="${j+1}"${+pv===j+1?' selected':''}>${j+1}</option>`).join('')}</select>`:editRole==='organisateur'?`<select class="${pv!==''&&+pv>0&&posCounts[pv]>1?'dup':''}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${pv===''?' selected':''}></option><option value="0"${+pv===0?' selected':''}>DNF</option>${Array.from({length:n},(_,j)=>`<option value="${j+1}"${+pv===j+1?' selected':''}>${j+1}</option>`).join('')}</select>`:`<span>${pv===0?'DNF':esc(pv||'—')}</span>`;
-return `<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td>${posCtl}<td class="pt" id="p${x.id}_${w.rid}">${pv===0?'DNF':(pv===''?'':pts(+pv))}`}).join('')}</table></div>`};
+ return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span>
+${x.pick?'<div class="mut" style="font-size:13px">Le mieux classé choisit sa porte en premier (ordre du tableau).</div>':''}
+<table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};
+const gate=x.pick
+ ?`<td class="ch">${i+1}<td><select class="gate ${w.gate?'':'vide'}" onchange="setGate(${x.id},${w.rid},this)"><option value=""></option>${[1,2,3,4,5,6,7,8].map(p=>`<option value="${p}" ${+w.gate===p?'selected':''} ${used.includes(p)&&+w.gate!==p?'disabled':''}>${p}</option>`).join('')}</select>`
+ :`<td><span class="gate-badge">${w.gate}</span>`;
+return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select class="${w.pos!==''&&+w.pos>0&&posCounts[w.pos]>1?'dup':''}" data-x="${x.id}" onchange="setPos(${x.id},${w.rid},this)"><option value=""${w.pos===''?' selected':''}></option><option value="0"${w.pos===0?' selected':''}>DNF</option>${Array.from({length:n},(_,i)=>`<option value="${i+1}"${w.pos===i+1?' selected':''}>${i+1}</option>`).join('')}</select><td class="pt" id="p${x.id}_${w.rid}">${w.pos===0?'DNF':(w.pos===''?'':pts(+w.pos))}`}).join('')}</table></div>`};
 
   const grid=(f,empty)=>{const l=S.races.filter(f);return l.length?`<div class="grid">${l.map(rc).join('')}</div>`:`<p class="mut">${empty}</p>`};
 
@@ -707,92 +639,50 @@ return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{cons
 
 
 const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
+
+
+let authStep='login';
+let pendingEmail='';
+
+const verificationV=()=>`
+<div class="card" style="max-width:340px;margin:40px auto">
+<h2>Vérification du courriel</h2>
+<p>Un code de vérification a été envoyé à :</p>
+<p><b>${esc(pendingEmail)}</b></p>
+
+<div class="row">
+<input id="otp" type="text" inputmode="numeric"
+maxlength="6" placeholder="Code à 6 chiffres"
+style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
+
+<button class="p" onclick="verifyEmailCode()">Vérifier le code</button>
+<button onclick="resendCode()">Renvoyer le code</button>
+<button onclick="backToLogin()">Retour à la connexion</button>
+</div>
+<p class="mut">Vérifie également tes courriels indésirables.</p>
+</div>`;
+
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
-function homeMarkup(){return `<div class="home-head"><div><div class="home-tag">Course BMX · espace de course</div><h1 class="home-brand">BMX RACE</h1></div><div class="home-actions"><button onclick="openLogin()" ${user?'hidden':''}>LOGIN · Commissaires et Organisateurs</button><button class="p" onclick="openVolunteer()">Bénévole</button><button class="p" onclick="openLogin()">Organisateur</button></div></div><section class="home-hero"><div><h2>TOUS<br>À LA GRILLE.</h2><p>Retrouvez une course partagée, consultez les résultats ou ouvrez votre espace selon votre rôle.</p></div><div class="home-filters"><label>Rechercher par titre<input id="searchTitle" type="search" placeholder="Nom de la course…" oninput="renderPublicList()"></label><label>Filtrer par date<input id="searchDate" type="date" onchange="renderPublicList()"></label></div></section><h2>Courses partagées</h2><div id="publicCourses"></div></div>`}
-function publicMatches(row){const t=$('#searchTitle')?.value.trim().toLocaleLowerCase('fr')||'',d=$('#searchDate')?.value||'',title=String(row.nom||row.title||'').toLocaleLowerCase('fr'),dateStr=[row.date,row.event_date,row.course_date,row.updated_at,row.created_at,row.nom].filter(Boolean).join(' ').toLowerCase();return(!t||title.includes(t))&&(!d||dateStr.includes(d)||dateStr.includes(d.replaceAll('-','/')))}
-function dateLabel(row){const raw=row?.date||row?.event_date||row?.course_date||row?.updated_at||'',m=String(row?.nom||'').match(/\b20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}\b/),val=m?m[0]:raw;if(!val)return'Date non indiquée';const d=new Date(val);return Number.isNaN(d.getTime())?String(val):d.toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'})}
-
-function renderPublicList(){const root=$('#publicCourses');if(!root)return;const rows=publicCourses.filter(publicMatches);if(publicLoadError){root.innerHTML=`<div class="home-message home-error">Impossible de charger les courses partagées. ${esc(publicLoadError)}<br><small>Vérifiez list_public_courses, les droits publics de lecture ou le schéma de partage.</small></div>`;return}if(!rows.length){root.innerHTML=`<div class="home-message">${publicCourses.length?'Aucune course ne correspond à ces filtres.':'Aucune course publique disponible pour le moment.'}</div>`;return}root.innerHTML=rows.map((r,i)=>`<article class="public-race" style="animation-delay:${Math.min(i*35,280)}ms"><h3>${esc(r.nom||r.title||'Course BMX')}</h3><div class="date">${esc(dateLabel(r))}</div><div class="race-actions"><button class="p" onclick="viewPublic('${esc(String(r.id))}')">Voir la course</button><button onclick="choosePublic('${esc(String(r.id))}')">Choisir pour bénévole</button></div></article>`).join('')}
-async function fetchPublicCourses(){
- publicLoadError='';publicCourses=[];
- try{
-  const r=await fetch(NEON_DATA_URL.replace(/\/$/,'')+'/rpc/list_public_courses',{
-   method:'POST',
-   headers:{'Content-Type':'application/json','Accept':'application/json'},
-   body:JSON.stringify({p_today:false,p_q:''})
-  });
-  const txt=await r.text();
-  let data;try{data=txt?JSON.parse(txt):[]}catch(e){data=null}
-  if(!r.ok)throw new Error('HTTP '+r.status+' '+(data&&(data.message||data.error)||txt.slice(0,200)));
-  publicCourses=Array.isArray(data)?data:(data?.courses||[]);
- }catch(e){
-  publicLoadError='RPC list_public_courses : '+(e.message||String(e));
- }
- renderPublicList();
-}
-
-function refreshHome(){const title=$('#searchTitle')?.value||'',date=$('#searchDate')?.value||'';fetchPublicCourses().then(()=>{if($('#searchTitle'))$('#searchTitle').value=title;if($('#searchDate'))$('#searchDate').value=date;renderPublicList()})}
-function byId(id){return publicCourses.find(r=>String(r.id)===String(id))||(selectedPublic&&String(selectedPublic.id)===String(id)?selectedPublic:null)}
-async function readCourse(row){
- if(!sb)throw new Error('Client de données Neon non initialisé.');
- const {data,error}=await sb.rpc('get_public_course',{p_id:String(row.id)});
- if(error)throw new Error('RPC get_public_course : '+(error.message||String(error)));
- const course=Array.isArray(data)?data[0]:data;
- const payload=course?.data||course?.results;
- if(!payload)throw new Error('La RPC get_public_course n’a pas renvoyé les données de la course.');
- return Object.assign(DEF(),payload);
-}
-async function viewPublic(id){const row=byId(id);if(!row)return;try{S=await readCourse(row);cid=String(row.id);currentPublic=row;editRole='visitor';user=null;volunteerMode=false;homeMode=false;tab='coureurs';courses=[];render()}catch(e){alert('Lecture de la course impossible : '+(e.message||e))}}
-function choosePublic(id){selectedPublic=byId(id);if(selectedPublic)openVolunteer()}
-function openLogin(){if(!sb){$('#loginMsg').textContent='Service d’authentification indisponible. Vérifiez la configuration réseau.';$('#loginModal').hidden=false;return}$('#loginMsg').textContent='';$('#loginModal').hidden=false;setTimeout(()=>$('#authEmail').focus(),0)}
-function openVolunteer(){if(!selectedPublic&&publicCourses.length)selectedPublic=publicCourses[0];if(!selectedPublic){$('#volunteerMsg').textContent='Aucune course partagée disponible. Choisissez une course dans la liste.';$('#volunteerModal').hidden=false;return}$('#volunteerMsg').textContent='Course : '+(selectedPublic.nom||'Course BMX');$('#volunteerModal').hidden=false;$('#volunteerSecret').value='';setTimeout(()=>$('#volunteerSecret').focus(),0)}
-function closeModal(id){const el=document.getElementById(id);if(el)el.hidden=true}
-function returnHome(){volunteerMode=false;editRole='visitor';currentPublic=null;cid=null;homeMode=true;user=null;render();refreshHome()}
-function draftKey(id){return'bmx_personal_draft_'+String(id)}
-function loadDraft(){try{draftState=JSON.parse(localStorage.getItem(draftKey(cid))||'{}')}catch(e){draftState={}}if(!draftState.positions)draftState.positions={};if(!draftState.motos)draftState.motos=[1,2,3]}
-function saveDraft(){draftState.updated_at=new Date().toISOString();localStorage.setItem(draftKey(cid),JSON.stringify(draftState));$('#st').textContent='Brouillon enregistré sur cet appareil'}
-async function unlockVolunteer(){const msg=$('#volunteerMsg');if(!selectedPublic){msg.textContent='Aucune course sélectionnée. Choisissez une course publique avant d’ouvrir la feuille.';return}const input=$('#volunteerSecret').value;if(input!==VOLUNTEER_SECRET){msg.textContent='Mot secret incorrect.';return}msg.textContent='Chargement de la feuille…';try{const loaded=await readCourse(selectedPublic);S=loaded;cid=String(selectedPublic.id);currentPublic=selectedPublic;user=null;editRole='visitor';volunteerMode=true;homeMode=false;draftMoto=1;loadDraft();closeModal('volunteerModal');render()}catch(e){msg.textContent='Impossible de lire la feuille : '+(e.message||String(e))}}
-function volunteerMarkup(){const riders=S.riders||[],groups=gnames(),races=S.races||[],hasOfficial=races.some(x=>Number(x.ph)===draftMoto);let out=`<div id="draftBanner">BROUILLON / NON OFFICIEL<small>Vos saisies restent dans le stockage local de cet appareil. Elles ne sont pas envoyées au serveur.</small></div><div class="row np"><strong>Course : ${esc(currentPublic?.nom||'')}</strong><label>Moto <select onchange="draftMoto=+this.value;render()"><option value="1" ${draftMoto===1?'selected':''}>Moto 1</option><option value="2" ${draftMoto===2?'selected':''}>Moto 2</option><option value="3" ${draftMoto===3?'selected':''}>Moto 3</option></select></label><button onclick="returnHome()">Quitter le brouillon</button></div><p class="mut">Cette feuille est personnelle. Les places saisies ne changent pas les résultats officiels.</p>`;
- if(hasOfficial)out+=`<div class="grid">${races.filter(x=>Number(x.ph)===draftMoto).map(rc).join('')}</div>`;else if(riders.length)out+=`<p class="mut">Les motos officielles ne sont pas encore générées. Brouillon indépendant des affectations — les groupes ci-dessous présentent tous les coureurs de la course.</p><div class="grid">${groups.map(g=>{const rs=riders.filter(r=>grp(r)===g);if(!rs.length)return'';const key=`local_${draftMoto}_${g}`;return `<div class="card"><span class="gn">${esc(g)}<small>Moto ${draftMoto} · feuille personnelle</small></span><table class="rc"><tr><th>N°<th class="nm">Nom<th>Pos</tr>${rs.map((r,i)=>{const k=`${key}_${r.id}`,v=draftState.positions[k]??'';return `<tr><td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select onchange="draftState.positions['${k}']=this.value;saveDraft()"><option value="">—</option><option value="0" ${String(v)==='0'?'selected':''}>DNF</option>${rs.map((_,n)=>`<option value="${n+1}" ${+v===n+1?'selected':''}>${n+1}</option>`).join('')}</select></tr>`}).join('')}</table></div>`}).join('')}</div>`;else out+='<p class="home-message">Aucun coureur dans cette course pour démarrer une feuille.</p>';return out}
-async function loadGatePicks(){if(!sb||!cid)return;try{const {data,error}=await sb.from('gate_picks').select('manche_ref,coureur_ref,porte').eq('course_id',String(cid));if(error)throw error;for(const p of data||[]){const race=S.races.find(x=>String(x.id)===String(p.manche_ref)),row=race?.rows.find(w=>String(w.rid)===String(p.coureur_ref));if(row)row.gate=p.porte??''}}catch(e){$('#st').textContent='Choix de portes non chargés : '+(e.message||e)}}
-async function saveGatePick(x,rid,porte){if(!sb||!cid){$('#st').textContent='Session officielle requise pour enregistrer cette porte';return}try{const {error}=await sb.from('gate_picks').upsert({course_id:String(cid),manche_ref:String(x.id),coureur_ref:String(rid),porte:porte===''?null:Number(porte)},{onConflict:'course_id,manche_ref,coureur_ref'});if(error)$('#st').textContent='Porte non synchronisée : '+error.message;else $('#st').textContent='Choix de porte sauvegardé'}catch(e){$('#st').textContent='Porte non synchronisée : '+(e.message||e)}}
-function authUid(session){const token=session?.access_token||session?.token||'';if(token){try{const payload=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));if(payload.sub)return payload.sub}catch(e){}}return session?.user?.sub||session?.user?.id||null}
-
-
 function render(){
- if(!homeMode&&!volunteerMode&&editRole==='organisateur')auto();
- if(homeMode){document.body.classList.add('homeMode');document.body.classList.remove('volunteerMode','readOnlyMode');$('#homeView').hidden=false;$('#homeView').innerHTML=homeMarkup();renderPublicList();$('#nav').style.display='none';$('#app').style.display='none';document.querySelector('header').style.display='none';return}
- document.body.classList.remove('homeMode');$('#homeView').hidden=true;$('#homeView').innerHTML='';document.querySelector('header').style.display='';$('#nav').style.display='flex';$('#app').style.display='';
- document.body.classList.toggle('volunteerMode',volunteerMode);document.body.classList.toggle('readOnlyMode',editRole==='visitor');
- $('#lo').style.display=user&&editRole!=='visitor'?'':'none';
- document.querySelectorAll('header button[title="Nouvelle course"],header button[title="Renommer"],header button[title="Supprimer"],header button[title="Recharger depuis le serveur"]').forEach(b=>b.style.display=editRole==='organisateur'?'':'none');
- $('#who').textContent=editRole==='organisateur'?'Organisateur':editRole==='commissaire'?'Commissaire':'Visiteur · lecture seule';
- $('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
- $('#btnLogin').style.display=(sb&&!user)?'':'none';
- const shareBtn=$('#btnShare'),selectedCourse=courses.find(c=>String(c.id)===String(cid));
- shareBtn.style.display=editRole==='organisateur'?'':'none';
- shareBtn.disabled=!cid;
- shareBtn.textContent=selectedCourse?.publique?'Retirer le partage public':'Partager publiquement';
- $('#coursePickerLabel').style.display=user&&['organisateur','commissaire'].includes(editRole)&&courses.length?'':'none';
- $('#sel').innerHTML=courses.length?courses.map(c=>{const stamp=c.updated_at||c.created_at;const date=stamp&&!Number.isNaN(new Date(stamp).getTime())?new Date(stamp).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):'Date inconnue';return `<option value="${esc(String(c.id))}" ${String(c.id)===String(cid)?'selected':''}>${esc(c.nom||'Course BMX')} · ${esc(date)}</option>`}).join(''):'<option value="">(aucune course)</option>';
- if(typeof V[tab]!=="function")tab='coureurs';
- if(volunteerMode){tab='motos';$('#nav').innerHTML='<button class="on">Motos · brouillon personnel</button><button onclick="returnHome()">Retour à l’accueil</button>';$('#app').innerHTML=volunteerMarkup();}
- else $('#app').innerHTML=V[tab]();
- if(volunteerMode){$('#app').querySelectorAll('input,textarea,button').forEach(el=>{if(!String(el.getAttribute('onclick')||'').includes('returnHome'))el.disabled=true});$('#app').querySelectorAll('select').forEach(el=>el.disabled=false);}
- else if(editRole!=='organisateur'){
-  $('#app').querySelectorAll('input,textarea,button').forEach(el=>{if(el.matches('button')&&el.getAttribute('onclick')==='print()')return;el.disabled=true});
-  $('#app').querySelectorAll('select').forEach(el=>{const table=el.closest('table'),pos=el.matches('select[data-x]'),gate=el.classList.contains('gate');let x=null;if(table){const any=table.querySelector('select[data-x],select.gate');const xid=any?.dataset.x;if(xid)x=S.races.find(r=>String(r.id)===String(xid));else {const onchange=any?.getAttribute('onchange')||'';const m=onchange.match(/setGate\((\d+)/);if(m)x=S.races.find(r=>String(r.id)===m[1])}}el.disabled=!(editRole==='commissaire'&&gate&&x?.ph==='F'&&x?.pick)});
- }
- if(sb&&!user)document.querySelectorAll('#app input,#app button,#app textarea').forEach(e=>e.disabled=true);
-
+ const locked=sb&&!user;
+ if(!locked)auto();
+ $('#lo').style.display=sb&&user?'':'none';
+ $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ $('#sel').style.display=sb&&user?'':'none';
+  $('#sel').innerHTML=courses.length
+  ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
+  :'<option value="">(aucune course sauvegardée)</option>';
+ if(typeof V[tab]!=="function")tab="coureurs";
+ $('#app').innerHTML=locked?
+  (authStep==='verify'?verificationV():loginV())
+  :V[tab]();
 }
 
-// ===== Sauvegarde (locale + Neon) =====
+// ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
 let tm=null,saveInFlight=false;
-
-function save(){
-  if((sb&&!user)||editRole!=='organisateur')return;localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
  tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();const payload=JSON.parse(JSON.stringify(S));
   try{
@@ -804,50 +694,16 @@ function save(){
   }finally{saveInFlight=false}
  },600)}
 
-function officialCourseStorageKey(uid){return 'bmx_official_cid_'+String(uid||'unknown')}
-function sortCoursesByRecent(rows){return (rows||[]).slice().sort((a,b)=>{
- const ta=Date.parse(a.updated_at||'')||Date.parse(a.created_at||'')||0,tb=Date.parse(b.updated_at||'')||Date.parse(b.created_at||'')||0;
- return tb-ta||String(b.created_at||'').localeCompare(String(a.created_at||''))||String(a.nom||'').localeCompare(String(b.nom||''),'fr');
- })}
-async function loadMemberCourses(uid){
- const{data:members,error}=await sb.from('members').select('course_id,role').eq('user_id',uid);
- if(error)throw new Error('Impossible de vérifier les rôles (table members) : '+error.message);
- const allowed=(members||[]).filter(m=>['organisateur','commissaire'].includes(m.role));
- if(!allowed.length)throw new Error('Ce compte n’a aucun rôle organisateur ou commissaire attribué.');
- courseRoles=Object.create(null);
- allowed.forEach(m=>{const k=String(m.course_id);if(!courseRoles[k]||m.role==='organisateur')courseRoles[k]=m.role});
- const ids=[...new Set(allowed.map(m=>String(m.course_id)))];
- const{data,error:courseErr}=await sb.from('courses').select('*').in('id',ids);
- if(courseErr)throw new Error('Impossible de charger les courses autorisées : '+courseErr.message);
- courses=sortCoursesByRecent((data||[]).filter(c=>courseRoles[String(c.id)]));
- if(!courses.length)throw new Error('Aucune des courses associées à ce compte n’est accessible.');
-}
 async function loadList(){
- const uid=authUid(authSession);
- if(uid){await loadMemberCourses(uid);return}
- const{data,error}=await sb.from('courses').select('*').order('updated_at',{ascending:false});
- if(error)throw error;courses=sortCoursesByRecent(data||[])}
+  const{data}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',
+  {ascending:false});courses=data||[]}
 
 async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error||!data){alert(error?.message||'Course introuvable ou inaccessible.');return false}
-  cid=String(id);lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=cid;return true}
-async function switchCourse(id){
- if(!user||!id||!courseRoles[String(id)]||String(id)===String(cid))return;
- try{
-  const opened=await openC(id);
-  if(!opened){$('#sel').value=String(cid||'');return;}
-  editRole=courseRoles[String(id)];
-  currentPublic={id,nom:courses.find(c=>String(c.id)===String(id))?.nom,data:S};
-  if(editRole==='commissaire')await loadGatePicks();
-  if(authUid(authSession))localStorage.setItem(officialCourseStorageKey(authUid(authSession)),String(id));
-  render();
- }catch(e){alert('Impossible d’ouvrir la course : '+(e.message||e))}
-}
+  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
 
 let creating=false;
 async function newC(){
- if(editRole!=='organisateur')return;
  if(creating)return;
  creating=true;
  try{
@@ -862,14 +718,9 @@ async function newC(){
      ?'Une course porte déjà ce nom'
      :'Erreur : '+error.message);
    }
-   cid=String(data.id);
+   cid=data.id;
    localStorage.bmx_cid=cid;
    await loadList();
-   const uid=authUid(authSession);
-   if(uid)localStorage.setItem(officialCourseStorageKey(uid),cid);
-   if(!courseRoles[cid])courseRoles[cid]='organisateur';
-   if(!courses.some(c=>String(c.id)===cid))courses.unshift({...data,id:cid});
-   courses=sortCoursesByRecent(courses);
   }
   S=nouveau;
   tab='coureurs';
@@ -880,30 +731,130 @@ async function newC(){
  }
 }
 
-async function reload(){if(editRole==='organisateur'&&sb&&cid){await openC(cid);render();stat('Données rechargées')}}
+async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
-async function login(){const status=$('#loginMsg');try{
- status.textContent='Connexion…';const A=sb.auth,c={email:$('#authEmail').value.trim(),password:$('#authPassword').value};
- const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
- if(r?.error)throw new Error(r.error.message||'Connexion refusée');
- const {data}=await A.getSession();authSession=data?.session||null;const uid=authUid(authSession);
- if(!uid)throw new Error('Session authentifiée sans identifiant utilisateur exploitable.');
- await loadMemberCourses(uid);
- const remembered=localStorage.getItem(officialCourseStorageKey(uid));
- const legacy=localStorage.getItem('bmx_cid');
- const selected=courses.find(x=>String(x.id)===String(remembered))||courses.find(x=>String(x.id)===String(legacy))||courses[0];
- const opened=await openC(selected.id);if(!opened)throw new Error('Impossible d’ouvrir la course sélectionnée.');
- user=true;editRole=courseRoles[String(selected.id)];
- localStorage.setItem(officialCourseStorageKey(uid),String(selected.id));
- if(editRole==='commissaire')await loadGatePicks();
- volunteerMode=false;homeMode=false;currentPublic={id:selected.id,nom:selected.nom,data:S};tab='coureurs';
- closeModal('loginModal');$('#loginMsg').textContent='';render();
- }catch(e){status.textContent=e.message||String(e);if(sb?.auth)try{const {data}=await sb.auth.getSession();if(!data?.session)user=null}catch(_){}}}
+async function login(){
+ try{stat('Connexion…');const A=sb.auth,c={email:$('#em').value.trim(),password:$('#pw').value};
+  const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
+  if(r&&r.error){stat('');return alert('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
+  user=true;await boot();stat('');render();
+  authStep='login';
+ }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
 
-async function logout(){try{await sb?.auth?.signOut()}catch(e){}user=null;authSession=null;cid=null;courses=[];courseRoles=Object.create(null);S=DEF();editRole='visitor';volunteerMode=false;homeMode=true;localStorage.removeItem('bmx_cid');localStorage.removeItem('bmx_S');render();refreshHome()}
+async function logout(){
+ if(!confirm('Se déconnecter?'))return;
+ try{
+  stat('Déconnexion…');
+  await sb.auth.signOut();
+ }catch(e){}
+ user=null;cid=null;courses=[];
+ S=DEF();
+ localStorage.removeItem('bmx_cid');
+ localStorage.removeItem('bmx_S');
+ authStep='login';
+ tab='coureurs';
+ stat('');
+ render();
+}
+
+async function signup(){
+ const em=$('#em').value.trim(),pw=$('#pw').value;
+
+ if(!em||!em.includes('@')||pw.length<8)
+   return alert('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
+
+ try{
+  stat('Création du compte…');
+
+  const r=await sb.auth.signUp.email({
+    email:em,
+    password:pw,
+    name:em.split('@')[0]
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Création refusée : '+r.error.message);
+  }
+
+  pendingEmail=em;
+  authStep='verify';
+  stat('');
+  render();
+
+  alert('Compte créé. Entre le code envoyé par courriel.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur à la création : '+(e.message||e));
+ }
+}
+
+
+async function verifyEmailCode(){
+ const otp=$('#otp').value.trim();
+
+ if(!/^\d{6}$/.test(otp))
+   return alert('Entre le code à 6 chiffres.');
+
+ try{
+  stat('Vérification…');
+
+  const r=await sb.auth.emailOtp.verifyEmail({
+    email:pendingEmail,
+    otp:otp
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Code refusé : '+r.error.message);
+  }
+
+  try{await sb.auth.signOut()}catch(e){}
+
+  user=null;
+  authStep='login';
+  stat('');
+  render();
+
+  alert('Courriel vérifié ! Tu peux maintenant te connecter.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur de vérification : '+(e.message||e));
+ }
+}
+ 
+async function resendCode(){
+ try{
+  stat('Envoi du code…');
+
+  const r=await sb.auth.emailOtp.sendVerificationOtp({
+    email:pendingEmail,
+    type:'email-verification'
+  });
+
+  if(r&&r.error){
+    stat('');
+    return alert('Erreur : '+r.error.message);
+  }
+
+  stat('');
+  alert('Un nouveau code a été envoyé.');
+
+ }catch(e){
+  stat('');
+  alert('Erreur : '+(e.message||e));
+ }
+}
+
+function backToLogin(){
+ authStep='login';
+ render();
+ stat('');
+}
 
 async function renC(){
- if(editRole!=='organisateur')return;
  if(!sb||!cid)return;
  const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
  const{error}=await sb.from('courses').update({nom}).eq('id',cid);
@@ -911,7 +862,6 @@ async function renC(){
  await loadList();render()}
  
 async function delC(){
- if(editRole!=='organisateur')return;
  if(!sb||!cid)return;
  const c=courses.find(c=>c.id===cid);
  if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
@@ -921,36 +871,20 @@ async function delC(){
  if(courses[0])await openC(courses[0].id);else await newC();
  render()}
 
- let pubMode=true,pubList=[];
-
-async function loadPublic(){
- try{pubList=await listPublic();}
- catch(e){pubList=[];stat('Courses publiques indisponibles : '+e.message);}
- render();
-}
-
-const publicV=()=>`<h2>Courses publiques</h2>`+
- (pubList.length
-  ?`<div class="grid">${pubList.map(c=>`<div class="card"><b>${esc(c.nom)}</b><div class="mut">${esc(c.updated_at||'')}</div></div>`).join('')}</div>`
-  :`<p class="mut">Aucune course publique pour le moment.</p>`)+
- `<div class="row np"><button class="p" onclick="pubMode=false;authStep='login';render()">Connexion organisateur</button></div>`;
 
 let booting=false;
 async function boot(){
  if(booting)return;
  booting=true;
  try{
-  const uid=authUid(authSession);
-  if(!uid)throw new Error('Session authentifiée sans identifiant utilisateur exploitable.');
-  await loadMemberCourses(uid);
-  const remembered=localStorage.getItem(officialCourseStorageKey(uid));
-  const legacy=localStorage.getItem('bmx_cid');
-  const selected=courses.find(c=>String(c.id)===String(remembered))||courses.find(c=>String(c.id)===String(legacy))||courses[0];
-  const opened=await openC(selected.id);if(!opened)throw new Error('Impossible d’ouvrir la course sélectionnée.');
-  user=true;editRole=courseRoles[String(selected.id)];
-  localStorage.setItem(officialCourseStorageKey(uid),String(selected.id));
-  if(editRole==='commissaire')await loadGatePicks();
- }finally{booting=false}
+  await loadList();
+  const id=localStorage.bmx_cid;
+  if(courses.find(c=>c.id===id))await openC(id);
+  else if(courses[0])await openC(courses[0].id);
+  else await newC();
+ }finally{
+  booting=false;
+ }
 }
 
 // ===== Rafraîchissement automatique =====
@@ -1005,7 +939,7 @@ function renderPreservingFocus(){
 
 async function autoSync(){
  lastTry=Date.now();
- if(!sb||!cid||!user||editRole!=='organisateur'||tm!==null||syncInFlight)return;
+ if(!sb||!cid||!user||tm!==null||syncInFlight)return;
  syncInFlight=true;
  try{
   const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
@@ -1043,71 +977,22 @@ function installNoCacheFetch(){
  window.__bmxNoCacheFetchInstalled=true;
 }
 
-async function togglePublic(){
- if(!sb||!cid||editRole!=='organisateur')return;
- const c=courses.find(x=>String(x.id)===String(cid)), on=!(c&&c.publique);
- try{
-  const{error}=await sb.rpc('set_course_public',{p_id:cid,p_pub:on});
-  if(error)throw new Error(error.message||String(error));
-  await loadList();render();
-  stat(on?'Course publiée':'Course dépubliée');
- }catch(e){stat('Partage non modifié');alert('Impossible de modifier le partage public : '+(e.message||String(e)))}
-}
-
-async function loadPub(){
- const{data,error}=await sb.rpc('list_public_courses',{p_today:false,p_q:''});
- if(error)return alert(error.message);
- publicList=data||[];render();
-}
-
-async function openPublic(id){
- const{data,error}=await sb.rpc('get_public_course',{p_id:id});
- if(error||!data)return alert('Course introuvable ou non publiée.');
- S=Object.assign(DEF(),data.data);cid=id;view='public';render();
-}
-
-
 (async()=>{
  if(NEON_AUTH_URL&&NEON_DATA_URL){
-  // 1) Client construction: only this failure means the client is unavailable.
   try{
-   const {createClient}=await import('https://esm.sh/@neondatabase/neon-js');
+   installNoCacheFetch();
+   const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+   const{data}=await sb.auth.getSession();
+   user=data&&data.session?true:null;
+   if(user)await boot();
   }catch(e){
-   console.error('Initialisation du client Neon impossible :',e);
-   publicLoadError='Initialisation du client Neon impossible : '+(e.message||String(e));
+   sb=null;
+   alert('Connexion à Neon impossible : '+e.message);
   }
- }
- if(sb){
-  // 2) Session lookup: a session error does not invalidate the initialized client.
-  let session=null;
-  try{
-   const result=await sb.auth.getSession();
-   if(result?.error)throw new Error(result.error.message||String(result.error));
-   session=result?.data?.session||null;
-   authSession=session;
-   user=session?true:null;
-  }catch(e){
-   console.error('Vérification de la session Neon impossible :',e);
-   authSession=null;user=null;
-  }
-  // 3) Load authenticated data only for an existing session. Visitors stay on public home.
-  if(session){
-   try{await boot()}
-   catch(e){console.error('Chargement des données organisateur impossible :',e);alert('Chargement des données organisateur impossible : '+(e.message||String(e)))}
-  }else{
-   homeMode=true;editRole='visitor';
-   try{await fetchPublicCourses()}
-   catch(e){publicLoadError='Chargement des courses publiques impossible : '+(e.message||String(e));console.error(publicLoadError,e)}
-  }
- }else{
-  // Keep local-only behavior if the client could not be initialized/configured.
-  try{S=Object.assign(DEF(),JSON.parse(localStorage.bmx_S||'{}'))}catch(e){console.warn('Brouillon local illisible :',e)}
  }
  render();
 })();
-</script>
 
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
-</body>
-</html>
+</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+</body></html>
