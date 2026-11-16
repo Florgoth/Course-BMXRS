@@ -711,25 +711,21 @@ const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Mo
 function homeMarkup(){return `<div class="home-head"><div><div class="home-tag">Course BMX · espace de course</div><h1 class="home-brand">BMX RACE</h1></div><div class="home-actions"><button onclick="openLogin()" ${user?'hidden':''}>LOGIN · Commissaires et Organisateurs</button><button class="p" onclick="openVolunteer()">Bénévole</button><button class="p" onclick="openLogin()">Organisateur</button></div></div><section class="home-hero"><div><h2>TOUS<br>À LA GRILLE.</h2><p>Retrouvez une course partagée, consultez les résultats ou ouvrez votre espace selon votre rôle.</p></div><div class="home-filters"><label>Rechercher par titre<input id="searchTitle" type="search" placeholder="Nom de la course…" oninput="renderPublicList()"></label><label>Filtrer par date<input id="searchDate" type="date" onchange="renderPublicList()"></label></div></section><h2>Courses partagées</h2><div id="publicCourses"></div></div>`}
 function publicMatches(row){const t=$('#searchTitle')?.value.trim().toLocaleLowerCase('fr')||'',d=$('#searchDate')?.value||'',title=String(row.nom||row.title||'').toLocaleLowerCase('fr'),dateStr=[row.date,row.event_date,row.course_date,row.updated_at,row.created_at,row.nom].filter(Boolean).join(' ').toLowerCase();return(!t||title.includes(t))&&(!d||dateStr.includes(d)||dateStr.includes(d.replaceAll('-','/')))}
 function dateLabel(row){const raw=row?.date||row?.event_date||row?.course_date||row?.updated_at||'',m=String(row?.nom||'').match(/\b20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}\b/),val=m?m[0]:raw;if(!val)return'Date non indiquée';const d=new Date(val);return Number.isNaN(d.getTime())?String(val):d.toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'})}
+
 function renderPublicList(){const root=$('#publicCourses');if(!root)return;const rows=publicCourses.filter(publicMatches);if(publicLoadError){root.innerHTML=`<div class="home-message home-error">Impossible de charger les courses partagées. ${esc(publicLoadError)}<br><small>Vérifiez list_public_courses, les droits publics de lecture ou le schéma de partage.</small></div>`;return}if(!rows.length){root.innerHTML=`<div class="home-message">${publicCourses.length?'Aucune course ne correspond à ces filtres.':'Aucune course publique disponible pour le moment.'}</div>`;return}root.innerHTML=rows.map((r,i)=>`<article class="public-race" style="animation-delay:${Math.min(i*35,280)}ms"><h3>${esc(r.nom||r.title||'Course BMX')}</h3><div class="date">${esc(dateLabel(r))}</div><div class="race-actions"><button class="p" onclick="viewPublic('${esc(String(r.id))}')">Voir la course</button><button onclick="choosePublic('${esc(String(r.id))}')">Choisir pour bénévole</button></div></article>`).join('')}
 async function fetchPublicCourses(){
  publicLoadError='';publicCourses=[];
- if(!sb) return;
- //if(!sb){publicLoadError='Client de données Neon non initialisé.';renderPublicList();return}
+ if(!sb){publicLoadError='Client de données Neon non initialisé.';renderPublicList();return}
  try{
-
-  const { data, error } = await sb.rpc('list_public_courses', {
-  p_today: false,
-  p_q: ''
-});
-
-  if(error)throw new Error(error.message||String(error));
+  const{data,error}=await sb.rpc('list_public_courses',{p_today:false,p_q:''});
+  if(error)throw new Error(error.message||JSON.stringify(error));
   publicCourses=Array.isArray(data)?data:(data?.courses||[]);
  }catch(e){
   publicLoadError='RPC list_public_courses : '+(e.message||String(e));
  }
  renderPublicList();
 }
+
 function refreshHome(){const title=$('#searchTitle')?.value||'',date=$('#searchDate')?.value||'';fetchPublicCourses().then(()=>{if($('#searchTitle'))$('#searchTitle').value=title;if($('#searchDate'))$('#searchDate').value=date;renderPublicList()})}
 function byId(id){return publicCourses.find(r=>String(r.id)===String(id))||(selectedPublic&&String(selectedPublic.id)===String(id)?selectedPublic:null)}
 async function readCourse(row){
@@ -781,8 +777,9 @@ function render(){
  else if(editRole!=='organisateur'){
   $('#app').querySelectorAll('input,textarea,button').forEach(el=>{if(el.matches('button')&&el.getAttribute('onclick')==='print()')return;el.disabled=true});
   $('#app').querySelectorAll('select').forEach(el=>{const table=el.closest('table'),pos=el.matches('select[data-x]'),gate=el.classList.contains('gate');let x=null;if(table){const any=table.querySelector('select[data-x],select.gate');const xid=any?.dataset.x;if(xid)x=S.races.find(r=>String(r.id)===String(xid));else {const onchange=any?.getAttribute('onchange')||'';const m=onchange.match(/setGate\((\d+)/);if(m)x=S.races.find(r=>String(r.id)===m[1])}}el.disabled=!(editRole==='commissaire'&&gate&&x?.ph==='F'&&x?.pick)});
+ }
  if(sb&&!user)document.querySelectorAll('#app input,#app button,#app textarea').forEach(e=>e.disabled=true);
-}
+
 }
 
 // ===== Sauvegarde (locale + Neon) =====
@@ -919,15 +916,19 @@ async function delC(){
  if(courses[0])await openC(courses[0].id);else await newC();
  render()}
 
- async function listPublic(today=false,q=null){
- const r=await fetch(NEON_DATA_URL+'/rpc/list_public_courses',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({p_today:today,p_q:q})
- });
- if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());
- return r.json();
+ let pubMode=true,pubList=[];
+
+async function loadPublic(){
+ try{pubList=await listPublic();}
+ catch(e){pubList=[];stat('Courses publiques indisponibles : '+e.message);}
+ render();
 }
+
+const publicV=()=>`<h2>Courses publiques</h2>`+
+ (pubList.length
+  ?`<div class="grid">${pubList.map(c=>`<div class="card"><b>${esc(c.nom)}</b><div class="mut">${esc(c.updated_at||'')}</div></div>`).join('')}</div>`
+  :`<p class="mut">Aucune course publique pour le moment.</p>`)+
+ `<div class="row np"><button class="p" onclick="pubMode=false;authStep='login';render()">Connexion organisateur</button></div>`;
 
 let booting=false;
 async function boot(){
