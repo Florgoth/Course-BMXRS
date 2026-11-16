@@ -19,6 +19,8 @@ header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;
 h1{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;font-size:28px;margin:0 auto 0 0;color:var(--pk);letter-spacing:1.5px;line-height:1}
 h2{font-family:'Bebas Neue',Impact,'Arial Narrow',sans-serif;font-weight:400;color:var(--ye);font-size:20px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:1px}
 nav{display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px;background:#25272b}
+.course-picker{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.5px}.course-picker select{max-width:min(42vw,340px);font-size:14px;text-transform:none;letter-spacing:0}
+@media(max-width:600px){.course-picker{flex:1;min-width:0}.course-picker select{flex:1;min-width:0;max-width:100%}}
 button,select,input,textarea{font:inherit;color:var(--tx);background:#34373c;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button:hover{border-color:var(--or)}
 button.ico{background:none;border-color:transparent;color:var(--mut);padding:6px;display:inline-flex;align-items:center}
@@ -213,7 +215,7 @@ body.volunteerMode #draftBanner{display:block}
 <div class="modal" id="volunteerModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="volunteerTitle"><button class="modal-close" onclick="closeModal('volunteerModal')" aria-label="Fermer">✕</button><h2 id="volunteerTitle">Accès bénévole</h2><p class="mut">Le brouillon est enregistré uniquement sur cet appareil et ne modifie jamais la course officielle.</p><form onsubmit="event.preventDefault();unlockVolunteer()"><label>Mot secret<input id="volunteerSecret" type="password" autocomplete="off" required></label><div class="row"><button class="p" type="submit">Ouvrir ma feuille</button><button type="button" onclick="closeModal('volunteerModal')">Annuler</button></div></form><p class="mut" id="volunteerMsg" role="status"></p></div></div>
 <header>
 <h1>BMX RACE · COURSE LOCALE</h1>
-<select id="sel" onchange="openC(this.value).then(render)"></select>
+<label id="coursePickerLabel" class="course-picker" for="sel">Course <select id="sel" aria-label="Changer de course" onchange="switchCourse(this.value)"></select></label>
 
 <button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
 
@@ -267,7 +269,7 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
-let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[],courseRoles=Object.create(null);
 // Mot secret modifiable côté client : ne constitue pas un mécanisme de sécurité serveur.
 const VOLUNTEER_SECRET='BMX-BENEVOLE';
 let homeMode=true,editRole='visitor',volunteerMode=false,publicCourses=[],publicLoadError='',selectedPublic=null,currentPublic=null,authSession=null,draftMoto=1,draftState={};
@@ -764,8 +766,8 @@ function render(){
  shareBtn.style.display=editRole==='organisateur'?'':'none';
  shareBtn.disabled=!cid;
  shareBtn.textContent=selectedCourse?.publique?'Retirer le partage public':'Partager publiquement';
- $('#sel').style.display=editRole==='organisateur'?'':'none';
- $('#sel').innerHTML=courses.length?courses.map(c=>`<option value="${c.id}" ${String(c.id)===String(cid)?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join(''):'<option value="">(aucune course)</option>';
+ $('#coursePickerLabel').style.display=user&&['organisateur','commissaire'].includes(editRole)&&courses.length?'':'none';
+ $('#sel').innerHTML=courses.length?courses.map(c=>{const stamp=c.updated_at||c.created_at;const date=stamp&&!Number.isNaN(new Date(stamp).getTime())?new Date(stamp).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):'Date inconnue';return `<option value="${esc(String(c.id))}" ${String(c.id)===String(cid)?'selected':''}>${esc(c.nom||'Course BMX')} · ${esc(date)}</option>`}).join(''):'<option value="">(aucune course)</option>';
  if(typeof V[tab]!=="function")tab='coureurs';
  if(volunteerMode){tab='motos';$('#nav').innerHTML='<button class="on">Motos · brouillon personnel</button><button onclick="returnHome()">Retour à l’accueil</button>';$('#app').innerHTML=volunteerMarkup();}
  else $('#app').innerHTML=V[tab]();
@@ -794,13 +796,46 @@ function save(){
   }finally{saveInFlight=false}
  },600)}
 
+function officialCourseStorageKey(uid){return 'bmx_official_cid_'+String(uid||'unknown')}
+function sortCoursesByRecent(rows){return (rows||[]).slice().sort((a,b)=>{
+ const ta=Date.parse(a.updated_at||'')||Date.parse(a.created_at||'')||0,tb=Date.parse(b.updated_at||'')||Date.parse(b.created_at||'')||0;
+ return tb-ta||String(b.created_at||'').localeCompare(String(a.created_at||''))||String(a.nom||'').localeCompare(String(b.nom||''),'fr');
+ })}
+async function loadMemberCourses(uid){
+ const{data:members,error}=await sb.from('members').select('course_id,role').eq('user_id',uid);
+ if(error)throw new Error('Impossible de vérifier les rôles (table members) : '+error.message);
+ const allowed=(members||[]).filter(m=>['organisateur','commissaire'].includes(m.role));
+ if(!allowed.length)throw new Error('Ce compte n’a aucun rôle organisateur ou commissaire attribué.');
+ courseRoles=Object.create(null);
+ allowed.forEach(m=>{const k=String(m.course_id);if(!courseRoles[k]||m.role==='organisateur')courseRoles[k]=m.role});
+ const ids=[...new Set(allowed.map(m=>String(m.course_id)))];
+ const{data,error:courseErr}=await sb.from('courses').select('*').in('id',ids);
+ if(courseErr)throw new Error('Impossible de charger les courses autorisées : '+courseErr.message);
+ courses=sortCoursesByRecent((data||[]).filter(c=>courseRoles[String(c.id)]));
+ if(!courses.length)throw new Error('Aucune des courses associées à ce compte n’est accessible.');
+}
 async function loadList(){
-  const{data}=await sb.from('courses').select('id,nom,updated_at,publique').order('updated_at',
-  {ascending:false});courses=data||[]}
+ const uid=authUid(authSession);
+ if(uid){await loadMemberCourses(uid);return}
+ const{data,error}=await sb.from('courses').select('*').order('updated_at',{ascending:false});
+ if(error)throw error;courses=sortCoursesByRecent(data||[])}
 
 async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
+  if(error||!data){alert(error?.message||'Course introuvable ou inaccessible.');return false}
+  cid=String(id);lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=cid;return true}
+async function switchCourse(id){
+ if(!user||!id||!courseRoles[String(id)]||String(id)===String(cid))return;
+ try{
+  const opened=await openC(id);
+  if(!opened){$('#sel').value=String(cid||'');return;}
+  editRole=courseRoles[String(id)];
+  currentPublic={id,nom:courses.find(c=>String(c.id)===String(id))?.nom,data:S};
+  if(editRole==='commissaire')await loadGatePicks();
+  if(authUid(authSession))localStorage.setItem(officialCourseStorageKey(authUid(authSession)),String(id));
+  render();
+ }catch(e){alert('Impossible d’ouvrir la course : '+(e.message||e))}
+}
 
 let creating=false;
 async function newC(){
@@ -819,9 +854,14 @@ async function newC(){
      ?'Une course porte déjà ce nom'
      :'Erreur : '+error.message);
    }
-   cid=data.id;
+   cid=String(data.id);
    localStorage.bmx_cid=cid;
    await loadList();
+   const uid=authUid(authSession);
+   if(uid)localStorage.setItem(officialCourseStorageKey(uid),cid);
+   if(!courseRoles[cid])courseRoles[cid]='organisateur';
+   if(!courses.some(c=>String(c.id)===cid))courses.unshift({...data,id:cid});
+   courses=sortCoursesByRecent(courses);
   }
   S=nouveau;
   tab='coureurs';
@@ -834,9 +874,25 @@ async function newC(){
 
 async function reload(){if(editRole==='organisateur'&&sb&&cid){await openC(cid);render();stat('Données rechargées')}}
 
-async function login(){const status=$('#loginMsg');try{status.textContent='Connexion…';const A=sb.auth,c={email:$('#authEmail').value.trim(),password:$('#authPassword').value};const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);if(r?.error)throw new Error(r.error.message||'Connexion refusée');const {data}=await A.getSession();authSession=data?.session||null;const uid=authUid(authSession);if(!uid)throw new Error('Session authentifiée sans identifiant utilisateur exploitable.');const {data:members,error}=await sb.from('members').select('course_id,role').eq('user_id',uid);if(error)throw new Error('Impossible de vérifier les rôles (table members) : '+error.message);const allowed=(members||[]).filter(m=>['organisateur','commissaire'].includes(m.role));if(!allowed.length)throw new Error('Ce compte n’a aucun rôle organisateur ou commissaire attribué.');const selected=allowed.find(m=>String(m.course_id)===String(selectedPublic?.id))||allowed[0];const {data:course,error:courseErr}=await sb.from('courses').select('*').eq('id',selected.course_id).single();if(courseErr||!course)throw new Error('Course autorisée introuvable : '+(courseErr?.message||''));S=Object.assign(DEF(),course.data);cid=String(course.id);courses=[{...course,id:String(course.id)}];user=true;editRole=selected.role;if(editRole==='commissaire')await loadGatePicks();volunteerMode=false;homeMode=false;currentPublic={id:course.id,nom:course.nom,data:course.data};tab='coureurs';closeModal('loginModal');$('#loginMsg').textContent='';render()}catch(e){status.textContent=e.message||String(e);if(sb?.auth)try{const {data}=await sb.auth.getSession();if(!data?.session)user=null}catch(_){}}}
+async function login(){const status=$('#loginMsg');try{
+ status.textContent='Connexion…';const A=sb.auth,c={email:$('#authEmail').value.trim(),password:$('#authPassword').value};
+ const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
+ if(r?.error)throw new Error(r.error.message||'Connexion refusée');
+ const {data}=await A.getSession();authSession=data?.session||null;const uid=authUid(authSession);
+ if(!uid)throw new Error('Session authentifiée sans identifiant utilisateur exploitable.');
+ await loadMemberCourses(uid);
+ const remembered=localStorage.getItem(officialCourseStorageKey(uid));
+ const legacy=localStorage.getItem('bmx_cid');
+ const selected=courses.find(x=>String(x.id)===String(remembered))||courses.find(x=>String(x.id)===String(legacy))||courses[0];
+ const opened=await openC(selected.id);if(!opened)throw new Error('Impossible d’ouvrir la course sélectionnée.');
+ user=true;editRole=courseRoles[String(selected.id)];
+ localStorage.setItem(officialCourseStorageKey(uid),String(selected.id));
+ if(editRole==='commissaire')await loadGatePicks();
+ volunteerMode=false;homeMode=false;currentPublic={id:selected.id,nom:selected.nom,data:S};tab='coureurs';
+ closeModal('loginModal');$('#loginMsg').textContent='';render();
+ }catch(e){status.textContent=e.message||String(e);if(sb?.auth)try{const {data}=await sb.auth.getSession();if(!data?.session)user=null}catch(_){}}}
 
-async function logout(){try{await sb?.auth?.signOut()}catch(e){}user=null;authSession=null;cid=null;courses=[];S=DEF();editRole='visitor';volunteerMode=false;homeMode=true;localStorage.removeItem('bmx_cid');localStorage.removeItem('bmx_S');render();refreshHome()}
+async function logout(){try{await sb?.auth?.signOut()}catch(e){}user=null;authSession=null;cid=null;courses=[];courseRoles=Object.create(null);S=DEF();editRole='visitor';volunteerMode=false;homeMode=true;localStorage.removeItem('bmx_cid');localStorage.removeItem('bmx_S');render();refreshHome()}
 
 async function renC(){
  if(editRole!=='organisateur')return;
@@ -863,14 +919,17 @@ async function boot(){
  if(booting)return;
  booting=true;
  try{
-  await loadList();
-  const id=localStorage.bmx_cid;
-  if(courses.find(c=>c.id===id))await openC(id);
-  else if(courses[0])await openC(courses[0].id);
-  else await newC();
- }finally{
-  booting=false;
- }
+  const uid=authUid(authSession);
+  if(!uid)throw new Error('Session authentifiée sans identifiant utilisateur exploitable.');
+  await loadMemberCourses(uid);
+  const remembered=localStorage.getItem(officialCourseStorageKey(uid));
+  const legacy=localStorage.getItem('bmx_cid');
+  const selected=courses.find(c=>String(c.id)===String(remembered))||courses.find(c=>String(c.id)===String(legacy))||courses[0];
+  const opened=await openC(selected.id);if(!opened)throw new Error('Impossible d’ouvrir la course sélectionnée.');
+  user=true;editRole=courseRoles[String(selected.id)];
+  localStorage.setItem(officialCourseStorageKey(uid),String(selected.id));
+  if(editRole==='commissaire')await loadGatePicks();
+ }finally{booting=false}
 }
 
 // ===== Rafraîchissement automatique =====
