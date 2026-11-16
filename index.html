@@ -239,7 +239,7 @@ function genMotos(){
  mt=1;tab='motos';save();render()}
 
 function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0,lastPos:Infinity,lastPhase:0,lastOrder:-1});
- S.races.forEach((x,order)=>{const phase=Number(x.ph);if(phase<1||phase>3||x.g!==g)return;
+ S.races.forEach((x,order)=>{const phase=Number(x.ph);if(!Number.isInteger(phase)||phase<1||phase>3||x.g!==g)return;
   x.rows.forEach(w=>{const o=m[w.rid];if(o&&hasResult(w.pos)){const pos=finishPos(w.pos,x.rows.length);o.p+=pts(w.pos);o.s+=pos;
    if(phase>o.lastPhase||(phase===o.lastPhase&&order>o.lastOrder)){o.lastPos=pos;o.lastPhase=phase;o.lastOrder=order}
   }});
