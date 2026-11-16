@@ -919,6 +919,15 @@ async function delC(){
  if(courses[0])await openC(courses[0].id);else await newC();
  render()}
 
+ async function listPublic(today=false,q=null){
+ const r=await fetch(NEON_DATA_URL+'/rpc/list_public_courses',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({p_today:today,p_q:q})
+ });
+ if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());
+ return r.json();
+}
 
 let booting=false;
 async function boot(){
