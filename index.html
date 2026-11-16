@@ -146,22 +146,28 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
+body.spectator header .organizer-only,body.spectator #sel,body.spectator #lo,body.spectator #who{display:none!important}
+body.spectator nav{border-bottom:1px solid var(--line)}
+#shareModal{position:fixed;inset:0;z-index:1000;background:#000b;display:grid;place-items:center;padding:16px}
+#shareModal .card{max-width:420px;width:100%;border-left-color:var(--ye)}
+#shareModal input{width:100%;margin:8px 0}
+#shareQr{display:grid;place-items:center;background:#fff;padding:12px;margin:12px auto;width:max-content;min-width:160px;min-height:160px}
 </style></head><body>
 
 <header>
 <h1>BMX RACE · COURSE LOCALE</h1>
 <select id="sel" onchange="openC(this.value).then(render)"></select>
 
-<button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
+<button class="organizer-only" onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
 
-<button class="ico" onclick="renC()" title="Renommer" aria-label="Renommer">
+<button class="ico organizer-only" onclick="renC()" title="Renommer" aria-label="Renommer">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M12 20h9"/>
 <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>
 </svg>
 </button>
 
-<button class="ico del" onclick="delC()" title="Supprimer" aria-label="Supprimer">
+<button class="ico del organizer-only" onclick="delC()" title="Supprimer" aria-label="Supprimer">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <polyline points="3 6 5 6 21 6"/>
 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -170,7 +176,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 </svg>
 </button>
 
-<button class="ico" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
+<button class="ico organizer-only" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/>
 <polyline points="3 4 3 9 8 9"/>
@@ -179,6 +185,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 </svg>
 </button>
 
+<button id="shareBtn" class="organizer-only" onclick="openShare()" style="display:none">Partager</button>
 <button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">⏻</button>
 <span id="who" class="mut"></span>
 
@@ -199,6 +206,10 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+// Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
+const spectatorId=new URLSearchParams(location.search).get('view');
+const spectator=!!spectatorId;
+let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
@@ -663,8 +674,30 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 <p class="mut">Vérifie également tes courriels indésirables.</p>
 </div>`;
 
+// Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
+const LIVE_TABS=[['live-motos','Motos'],['live-class','Classements'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+function liveRace(x){
+ const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
+ return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
+}
+function liveView(){
+ if(tab==='live-class')return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}</tr>`).join('')}</table></div>`).join('')}</div>`;
+ if(tab==='live-podiums')return `<h2>Podiums</h2><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return '';return `<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map((p)=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return `<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`;
+ const phase=tab==='live-motos'?null:tab==='live-demis'?'D':'F';
+ const races=S.races.filter(x=>phase===null?([1,2,3].includes(Number(x.ph))):x.ph===phase);
+ const byPhase=phase===null?[1,2,3].map(n=>({title:`Moto ${n}`,items:races.filter(x=>Number(x.ph)===n)})):[{title:phase==='D'?'Demis':'Finales',items:races}];
+ return `<h2>${tab==='live-motos'?'Résultats des motos':tab==='live-demis'?'Demis':'Finales'}</h2>${byPhase.map(b=>`<h2>${b.title}</h2>${b.items.length?`<div class="grid">${b.items.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}`).join('')}`;
+}
+function renderSpectator(){
+ document.body.classList.add('spectator');$('#nav').innerHTML=LIVE_TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ $('#app').innerHTML=`<p class="mut">🔴 Vue publique en lecture seule · ${esc(spectatorName)} · mise à jour automatique</p>${liveView()}`;
+}
+
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
+ if(spectator){renderSpectator();return}
+ document.body.classList.remove('spectator');
+ $('#shareBtn').style.display=sb&&user&&cid?'':'none';
  const locked=sb&&!user;
  if(!locked)auto();
  $('#lo').style.display=sb&&user?'':'none';
@@ -682,7 +715,7 @@ function render(){
 // ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
 let tm=null,saveInFlight=false;
-function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+function save(){if(spectator)return stat('Mode spectateur : écriture interdite');localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
  tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();const payload=JSON.parse(JSON.stringify(S));
   try{
@@ -704,6 +737,7 @@ async function openC(id){
 
 let creating=false;
 async function newC(){
+ if(spectator)return;
  if(creating)return;
  creating=true;
  try{
@@ -855,14 +889,14 @@ function backToLogin(){
 }
 
 async function renC(){
- if(!sb||!cid)return;
+ if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
  const{error}=await sb.from('courses').update({nom}).eq('id',cid);
  if(error)return alert(error.message);
  await loadList();render()}
  
 async function delC(){
- if(!sb||!cid)return;
+ if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid);
  if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
  const{error}=await sb.from('courses').delete().eq('id',cid);
@@ -939,18 +973,19 @@ function renderPreservingFocus(){
 
 async function autoSync(){
  lastTry=Date.now();
- if(!sb||!cid||!user||tm!==null||syncInFlight)return;
+ if(spectator){if(!sb||!cid||syncInFlight)return;}else if(!sb||!cid||!user||tm!==null||syncInFlight)return;
  syncInFlight=true;
  try{
-  const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
+  const{data,error}=await sb.from('courses').select('updated_at,data,nom').eq('id',cid).single();
   if(error||!data)return;
   const remote=stableStringify(data.data);
   if(remote!==lastSyncData){
    lastSync=data.updated_at;
    S=Object.assign(DEF(),data.data);
+   if(spectator&&data.nom)spectatorName=data.nom;
    lastSyncData=stableStringify(S);
    // Re-render même pendant l'édition, en conservant le focus et le brouillon.
-   renderPreservingFocus();
+   if(spectator)render();else renderPreservingFocus();
    stat('Mis à jour automatiquement');
   }
  }catch(e){}finally{syncInFlight=false}
@@ -961,6 +996,28 @@ window.addEventListener('focus',autoSync);
 window.addEventListener('pageshow',autoSync);
 window.addEventListener('online',autoSync);
 document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync()},{passive:true});
+
+// Partage public par identifiant de course. La lecture publique nécessite une règle SELECT dédiée côté base.
+function openShare(){
+ if(!sb||!user||!cid)return alert('Connecte-toi et ouvre une course sauvegardée avant de la partager.');
+ const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('view',cid);
+ const link=url.href;
+ const modal=document.createElement('div');modal.id='shareModal';modal.innerHTML=`<div class="card"><h2>Partager les résultats en direct</h2><p class="mut">Toute personne possédant ce lien pourra consulter les résultats, sans les modifier.</p><input id="shareLink" readonly value="${esc(link)}"><div id="shareQr" aria-label="Code QR du lien"></div><div class="row"><button class="p" id="copyShare">Copier le lien</button><button id="nativeShare">Partager…</button><button id="closeShare">Fermer</button></div><p class="mut">Le lien fonctionne si la politique de lecture publique de Neon autorise cette course.</p></div>`;
+ document.body.appendChild(modal);
+ modal.querySelector('#closeShare').onclick=()=>modal.remove();
+ modal.querySelector('#copyShare').onclick=async()=>{try{await navigator.clipboard.writeText(link);stat('Lien copié')}catch(e){const i=modal.querySelector('#shareLink');i.select();document.execCommand('copy');stat('Lien copié')}};
+ modal.querySelector('#nativeShare').onclick=async()=>{if(navigator.share){try{await navigator.share({title:'Résultats BMX en direct',url:link})}catch(e){}}else modal.querySelector('#copyShare').click()};
+ const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';script.onload=()=>{if(modal.isConnected)new QRCode(modal.querySelector('#shareQr'),{text:link,width:180,height:180,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})};script.onerror=()=>{modal.querySelector('#shareQr').textContent='QR indisponible (CDN)'};document.head.appendChild(script);
+}
+async function loadSpectator(){
+ document.body.classList.add('spectator');tab='live-class';cid=spectatorId;
+ if(!sb){stat('Service de données indisponible');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';return}
+ stat('Chargement des résultats…');
+ try{const{data,error}=await sb.from('courses').select('id,nom,updated_at,data').eq('id',spectatorId).single();
+  if(error||!data){$('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';stat('');return}
+  S=Object.assign(DEF(),data.data);spectatorName=data.nom||spectatorName;lastSync=data.updated_at;lastSyncData=stableStringify(S);render();stat('Résultats chargés · actualisation toutes les 5 s');
+ }catch(e){$('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Impossible de lire les résultats partagés.</p></div>';stat('Erreur de lecture')}
+}
 
 // Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
 function installNoCacheFetch(){
@@ -983,16 +1040,18 @@ function installNoCacheFetch(){
    installNoCacheFetch();
    const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
-   const{data}=await sb.auth.getSession();
+   if(spectator){await loadSpectator()}else{const{data}=await sb.auth.getSession();
    user=data&&data.session?true:null;
-   if(user)await boot();
+   if(user)await boot();}
   }catch(e){
    sb=null;
-   alert('Connexion à Neon impossible : '+e.message);
+   if(spectator){document.body.classList.add('spectator');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion à Neon impossible. Vérifie la configuration du service.</p></div>';stat('Service indisponible')}
+   else alert('Connexion à Neon impossible : '+e.message);
   }
  }
- render();
+ if(!spectator)render();
 })();
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body></html>
