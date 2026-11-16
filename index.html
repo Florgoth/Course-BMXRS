@@ -714,10 +714,11 @@ function dateLabel(row){const raw=row?.date||row?.event_date||row?.course_date||
 function renderPublicList(){const root=$('#publicCourses');if(!root)return;const rows=publicCourses.filter(publicMatches);if(publicLoadError){root.innerHTML=`<div class="home-message home-error">Impossible de charger les courses partagées. ${esc(publicLoadError)}<br><small>Vérifiez list_public_courses, les droits publics de lecture ou le schéma de partage.</small></div>`;return}if(!rows.length){root.innerHTML=`<div class="home-message">${publicCourses.length?'Aucune course ne correspond à ces filtres.':'Aucune course publique disponible pour le moment.'}</div>`;return}root.innerHTML=rows.map((r,i)=>`<article class="public-race" style="animation-delay:${Math.min(i*35,280)}ms"><h3>${esc(r.nom||r.title||'Course BMX')}</h3><div class="date">${esc(dateLabel(r))}</div><div class="race-actions"><button class="p" onclick="viewPublic('${esc(String(r.id))}')">Voir la course</button><button onclick="choosePublic('${esc(String(r.id))}')">Choisir pour bénévole</button></div></article>`).join('')}
 async function fetchPublicCourses(){
  publicLoadError='';publicCourses=[];
- if(!sb){publicLoadError='Client de données Neon non initialisé.';renderPublicList();return}
+ if(!sb) return;
+ //if(!sb){publicLoadError='Client de données Neon non initialisé.';renderPublicList();return}
  try{
 
-  const { data, error } = await client.rpc('list_public_courses', {
+  const { data, error } = await sb.rpc('list_public_courses', {
   p_today: false,
   p_q: ''
 });
