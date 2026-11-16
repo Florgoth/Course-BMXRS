@@ -207,7 +207,22 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 // Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
-const spectatorId=new URLSearchParams(location.search).get('view');
+// Prend en charge le décodage URL standard, les anciens liens double-encodés
+// et les identifiants contenant un « + » transmis sans échappement.
+function spectatorIdsFromSearch(search){
+ const params=new URLSearchParams(search),ids=[];
+ const add=value=>{if(value&&!ids.includes(value))ids.push(value)};
+ params.getAll('view').forEach(value=>{add(value);add(value.replace(/ /g,'+'));try{add(decodeURIComponent(value))}catch(e){}});
+ for(const part of String(search||'').replace(/^\?/,'').split('&')){
+  const eq=part.indexOf('=');if(eq<0)continue;
+  let key='';try{key=decodeURIComponent(part.slice(0,eq).replace(/\+/g,' '))}catch(e){}
+  if(key!=='view')continue;
+  try{add(decodeURIComponent(part.slice(eq+1)))}catch(e){}
+ }
+ return ids;
+}
+const spectatorIds=spectatorIdsFromSearch(location.search);
+const spectatorId=spectatorIds[0]||null;
 const spectator=!!spectatorId;
 let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
@@ -1011,11 +1026,24 @@ window.addEventListener('online',autoSync);
 document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync()},{passive:true});
 
 // Partage public par identifiant de course. La lecture publique nécessite une règle SELECT dédiée côté base.
-function openShare(){
+async function openShare(){
  if(!sb||!user||!cid)return alert('Connecte-toi et ouvre une course sauvegardée avant de la partager.');
+ // Une sauvegarde est différée de 600 ms : la pousser avant de publier le lien
+ // évite que l’ouverture immédiate (ou le scan du QR) lise l’ancien contenu.
+ try{
+  if(tm!==null){clearTimeout(tm);tm=null;}
+  while(saveInFlight)await new Promise(resolve=>setTimeout(resolve,50));
+  if(stableStringify(S)!==lastSyncData){
+   stat('Synchronisation avant partage…');
+   const payload=JSON.parse(JSON.stringify(S)),now=new Date().toISOString();
+   const{error}=await sb.from('courses').update({data:payload,updated_at:now}).eq('id',cid);
+   if(error)throw error;
+   lastSync=now;lastSyncData=stableStringify(payload);
+  }
+ }catch(e){stat('');return alert('Partage annulé : la course n’a pas pu être synchronisée. '+(e.message||''))}
  const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('view',cid);
  const link=url.href;
- const modal=document.createElement('div');modal.id='shareModal';modal.innerHTML=`<div class="card"><h2>Partager les résultats en direct</h2><p class="mut">Toute personne possédant ce lien pourra consulter les résultats, sans les modifier.</p><input id="shareLink" readonly value="${esc(link)}"><div id="shareQr" aria-label="Code QR du lien"></div><div class="row"><button class="p" id="copyShare">Copier le lien</button><button id="nativeShare">Partager…</button><button id="closeShare">Fermer</button></div><p class="mut">Le lien fonctionne si la politique de lecture publique de Neon autorise cette course.</p></div>`;
+ const modal=document.createElement('div');modal.id='shareModal';modal.innerHTML=`<div class="card"><h2>Partager les résultats en direct</h2><p class="mut">Toute personne possédant ce lien pourra consulter les résultats, sans les modifier.</p><input id="shareLink" readonly value="${esc(link)}"><div id="shareQr" aria-label="Code QR du lien"></div><div class="row"><button class="p" id="copyShare">Copier le lien</button><button id="nativeShare">Partager…</button><button id="closeShare">Fermer</button></div><p class="mut">Partagez ce lien avec qui vous voulez pour permettre l’accès en direct aux résultats de la course.</p></div>`;
  document.body.appendChild(modal);
  modal.querySelector('#closeShare').onclick=()=>modal.remove();
  modal.querySelector('#copyShare').onclick=async()=>{try{await navigator.clipboard.writeText(link);stat('Lien copié')}catch(e){const i=modal.querySelector('#shareLink');i.select();document.execCommand('copy');stat('Lien copié')}};
@@ -1026,10 +1054,21 @@ async function loadSpectator(){
  document.body.classList.add('spectator');tab='live-class';cid=spectatorId;
  if(!sb){stat('Service de données indisponible');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';return}
  stat('Chargement des résultats…');
- try{const{data,error}=await sb.from('courses').select('id,nom,updated_at,data').eq('id',spectatorId).single();
-  if(error||!data){$('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';stat('');return}
-  S=Object.assign(DEF(),data.data);spectatorName=data.nom||spectatorName;lastSync=data.updated_at;lastSyncData=stableStringify(S);render();stat('Résultats chargés · actualisation toutes les 5 s');
- }catch(e){$('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Impossible de lire les résultats partagés.</p></div>';stat('Erreur de lecture')}
+ let lastError=null;
+ // Un lien peut être ouvert avant la fin de la réplication/cache du service ;
+ // retenter brièvement les lectures au lieu d’afficher une erreur transitoire.
+ for(let attempt=0;attempt<3;attempt++){
+  for(const id of spectatorIds){
+   try{
+    const{data,error}=await sb.from('courses').select('id,nom,updated_at,data').eq('id',id).single();
+    if(!error&&data){S=Object.assign(DEF(),data.data);spectatorName=data.nom||spectatorName;lastSync=data.updated_at;lastSyncData=stableStringify(S);render();stat('Résultats chargés · actualisation toutes les 5 s');return}
+    lastError=error||new Error('Aucune course trouvée pour cet identifiant');
+   }catch(e){lastError=e}
+  }
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));
+ }
+ $('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';
+ stat(lastError?'Erreur de lecture':'');
 }
 
 // Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
