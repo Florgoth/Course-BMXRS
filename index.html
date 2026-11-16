@@ -646,7 +646,7 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
 motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
-class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+class:()=>`<div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
 finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
@@ -654,7 +654,7 @@ return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{cons
 };
 
 
-const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['class','Classements'],['motos','Motos'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
 
@@ -680,7 +680,7 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 </div>`;
 
 // Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
-const LIVE_TABS=[['live-motos','Motos'],['live-class','Classements'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+const LIVE_TABS=[['live-class','Classements'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
 function liveRace(x){
  const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
@@ -688,18 +688,18 @@ function liveRace(x){
 let liveMoto=1;
 function liveView(){
  if(tab==='live-class'){
+  return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`;
+ }
+ if(tab==='live-motos'){
   const buttons=[1,2,3].map(m=>`<button type="button" class="mb ${m===liveMoto?'on':''}" aria-pressed="${m===liveMoto}" onclick="liveMoto=${m};render()">Moto ${m}</button>`).join('');
-  const sections=[1,2,3].map(m=>{
-   const races=S.races.filter(x=>Number(x.ph)===m);
-   return `<section class="live-moto-results" data-moto="${m}" ${m===liveMoto?'':'hidden'}><h2>Moto ${m}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}</section>`;
-  }).join('');
-  return `<h2>Classements en direct</h2><div class="row np mototabs" aria-label="Sélectionner une moto">${buttons}</div>${sections}`;
+  const races=S.races.filter(x=>Number(x.ph)===liveMoto);
+  return `<h2>Motos</h2><div class="row np mototabs" aria-label="Sélectionner une moto">${buttons}</div><section class="live-moto-results" data-moto="${liveMoto}"><h2>Moto ${liveMoto}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}</section>`;
  }
  if(tab==='live-podiums')return `<h2>Podiums</h2><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return '';return `<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map((p)=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return `<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`;
- const phase=tab==='live-motos'?null:tab==='live-demis'?'D':'F';
- const races=S.races.filter(x=>phase===null?([1,2,3].includes(Number(x.ph))):x.ph===phase);
- const byPhase=phase===null?[1,2,3].map(n=>({title:`Moto ${n}`,items:races.filter(x=>Number(x.ph)===n)})):[{title:phase==='D'?'Demis':'Finales',items:races}];
- return `<h2>${tab==='live-motos'?'Résultats des motos':tab==='live-demis'?'Demis':'Finales'}</h2>${byPhase.map(b=>`<h2>${b.title}</h2>${b.items.length?`<div class="grid">${b.items.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}`).join('')}`;
+ const phase=tab==='live-demis'?'D':'F';
+ const races=S.races.filter(x=>x.ph===phase);
+ const title=phase==='D'?'Demis':'Finales';
+ return `<h2>${title}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}`;
 }
 function renderSpectator(){
  document.body.classList.add('spectator');$('#nav').innerHTML=LIVE_TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
