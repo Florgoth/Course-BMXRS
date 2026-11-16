@@ -245,6 +245,7 @@ body.volunteerMode #draftBanner{display:block}
 </button>
 
 <button id="btnLogin" onclick="openLogin()">Connexion Organisateur</button>
+<button id="btnShare" onclick="togglePublic()" style="display:none">Partager publiquement</button>
 
 <button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">⏻</button>
 <span id="who" class="mut"></span>
@@ -741,7 +742,7 @@ function returnHome(){volunteerMode=false;editRole='visitor';currentPublic=null;
 function draftKey(id){return'bmx_personal_draft_'+String(id)}
 function loadDraft(){try{draftState=JSON.parse(localStorage.getItem(draftKey(cid))||'{}')}catch(e){draftState={}}if(!draftState.positions)draftState.positions={};if(!draftState.motos)draftState.motos=[1,2,3]}
 function saveDraft(){draftState.updated_at=new Date().toISOString();localStorage.setItem(draftKey(cid),JSON.stringify(draftState));$('#st').textContent='Brouillon enregistré sur cet appareil'}
-async function unlockVolunteer(){if(!selectedPublic)return;const input=$('#volunteerSecret').value;if(input!==VOLUNTEER_SECRET){$('#volunteerMsg').textContent='Mot secret incorrect.';return}closeModal('volunteerModal');try{S=await readCourse(selectedPublic)}catch(e){$('#volunteerMsg').textContent='Impossible de lire la feuille : '+(e.message||e);$('#volunteerModal').hidden=false;return}cid=String(selectedPublic.id);currentPublic=selectedPublic;user=null;editRole='visitor';volunteerMode=true;homeMode=false;draftMoto=1;loadDraft();render()}
+async function unlockVolunteer(){const msg=$('#volunteerMsg');if(!selectedPublic){msg.textContent='Aucune course sélectionnée. Choisissez une course publique avant d’ouvrir la feuille.';return}const input=$('#volunteerSecret').value;if(input!==VOLUNTEER_SECRET){msg.textContent='Mot secret incorrect.';return}msg.textContent='Chargement de la feuille…';try{const loaded=await readCourse(selectedPublic);S=loaded;cid=String(selectedPublic.id);currentPublic=selectedPublic;user=null;editRole='visitor';volunteerMode=true;homeMode=false;draftMoto=1;loadDraft();closeModal('volunteerModal');render()}catch(e){msg.textContent='Impossible de lire la feuille : '+(e.message||String(e))}}
 function volunteerMarkup(){const riders=S.riders||[],groups=gnames(),races=S.races||[],hasOfficial=races.some(x=>Number(x.ph)===draftMoto);let out=`<div id="draftBanner">BROUILLON / NON OFFICIEL<small>Vos saisies restent dans le stockage local de cet appareil. Elles ne sont pas envoyées au serveur.</small></div><div class="row np"><strong>Course : ${esc(currentPublic?.nom||'')}</strong><label>Moto <select onchange="draftMoto=+this.value;render()"><option value="1" ${draftMoto===1?'selected':''}>Moto 1</option><option value="2" ${draftMoto===2?'selected':''}>Moto 2</option><option value="3" ${draftMoto===3?'selected':''}>Moto 3</option></select></label><button onclick="returnHome()">Quitter le brouillon</button></div><p class="mut">Cette feuille est personnelle. Les places saisies ne changent pas les résultats officiels.</p>`;
  if(hasOfficial)out+=`<div class="grid">${races.filter(x=>Number(x.ph)===draftMoto).map(rc).join('')}</div>`;else if(riders.length)out+=`<p class="mut">Les motos officielles ne sont pas encore générées. Brouillon indépendant des affectations — les groupes ci-dessous présentent tous les coureurs de la course.</p><div class="grid">${groups.map(g=>{const rs=riders.filter(r=>grp(r)===g);if(!rs.length)return'';const key=`local_${draftMoto}_${g}`;return `<div class="card"><span class="gn">${esc(g)}<small>Moto ${draftMoto} · feuille personnelle</small></span><table class="rc"><tr><th>N°<th class="nm">Nom<th>Pos</tr>${rs.map((r,i)=>{const k=`${key}_${r.id}`,v=draftState.positions[k]??'';return `<tr><td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select onchange="draftState.positions['${k}']=this.value;saveDraft()"><option value="">—</option><option value="0" ${String(v)==='0'?'selected':''}>DNF</option>${rs.map((_,n)=>`<option value="${n+1}" ${+v===n+1?'selected':''}>${n+1}</option>`).join('')}</select></tr>`}).join('')}</table></div>`}).join('')}</div>`;else out+='<p class="home-message">Aucun coureur dans cette course pour démarrer une feuille.</p>';return out}
 async function loadGatePicks(){if(!sb||!cid)return;try{const {data,error}=await sb.from('gate_picks').select('manche_ref,coureur_ref,porte').eq('course_id',String(cid));if(error)throw error;for(const p of data||[]){const race=S.races.find(x=>String(x.id)===String(p.manche_ref)),row=race?.rows.find(w=>String(w.rid)===String(p.coureur_ref));if(row)row.gate=p.porte??''}}catch(e){$('#st').textContent='Choix de portes non chargés : '+(e.message||e)}}
@@ -759,6 +760,10 @@ function render(){
  $('#who').textContent=editRole==='organisateur'?'Organisateur':editRole==='commissaire'?'Commissaire':'Visiteur · lecture seule';
  $('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
  $('#btnLogin').style.display=(sb&&!user)?'':'none';
+ const shareBtn=$('#btnShare'),selectedCourse=courses.find(c=>String(c.id)===String(cid));
+ shareBtn.style.display=editRole==='organisateur'?'':'none';
+ shareBtn.disabled=!cid;
+ shareBtn.textContent=selectedCourse?.publique?'Retirer le partage public':'Partager publiquement';
  $('#sel').style.display=editRole==='organisateur'?'':'none';
  $('#sel').innerHTML=courses.length?courses.map(c=>`<option value="${c.id}" ${String(c.id)===String(cid)?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join(''):'<option value="">(aucune course)</option>';
  if(typeof V[tab]!=="function")tab='coureurs';
@@ -772,7 +777,7 @@ function render(){
 }
 }
 
-// ===== Sauvegarde (locale + Supabase) =====
+// ===== Sauvegarde (locale + Neon) =====
 const stat=t=>$('#st').textContent=t;
 let tm=null,saveInFlight=false;
 
@@ -790,7 +795,7 @@ function save(){
  },600)}
 
 async function loadList(){
-  const{data}=await sb.from('courses').select('id,nom,updated_at').order('updated_at',
+  const{data}=await sb.from('courses').select('id,nom,updated_at,publique').order('updated_at',
   {ascending:false});courses=data||[]}
 
 async function openC(id){
@@ -959,12 +964,14 @@ function installNoCacheFetch(){
 }
 
 async function togglePublic(){
- if(!sb||!cid)return;
- const c=courses.find(x=>x.id===cid), on=!(c&&c.publique);
- const{error}=await sb.rpc('set_course_public',{p_id:cid,p_pub:on});
- if(error)return alert(error.message);
- await loadList();render();
- stat(on?'Course publiée':'Course dépubliée');
+ if(!sb||!cid||editRole!=='organisateur')return;
+ const c=courses.find(x=>String(x.id)===String(cid)), on=!(c&&c.publique);
+ try{
+  const{error}=await sb.rpc('set_course_public',{p_id:cid,p_pub:on});
+  if(error)throw new Error(error.message||String(error));
+  await loadList();render();
+  stat(on?'Course publiée':'Course dépubliée');
+ }catch(e){stat('Partage non modifié');alert('Impossible de modifier le partage public : '+(e.message||String(e)))}
 }
 
 async function loadPub(){
@@ -1019,8 +1026,8 @@ async function openPublic(id){
  }
  render();
 })();
-</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+</script>
+
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
