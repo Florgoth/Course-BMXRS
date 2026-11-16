@@ -716,7 +716,12 @@ async function fetchPublicCourses(){
  publicLoadError='';publicCourses=[];
  if(!sb){publicLoadError='Client de données Neon non initialisé.';renderPublicList();return}
  try{
-  const {data,error}=await sb.rpc('list_public_courses',{p_today:false,p_q:''});
+
+  const { data, error } = await client.rpc('list_public_courses', {
+  p_today: false,
+  p_q: ''
+});
+
   if(error)throw new Error(error.message||String(error));
   publicCourses=Array.isArray(data)?data:(data?.courses||[]);
  }catch(e){
