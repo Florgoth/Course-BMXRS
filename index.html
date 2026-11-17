@@ -118,10 +118,6 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 
 nav button{padding:8px 14px;opacity:.65}
 nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#ffffff;font-weight:800;box-shadow:0 0 0 3px rgba(255, 255, 255, 0.35)}
-@media (min-width:769px){
- #nav .desktop-tab{display:inline-flex;align-items:center;gap:6px}
- #nav .desktop-tab svg{width:16px;height:16px;display:block;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-}
 
 .mototabs button{min-width:78px;padding:8px 12px;opacity:.65}
 .mototabs button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#ffffff;font-weight:800;box-shadow:0 0 0 3px rgba(255, 255, 255, 0.35)}
@@ -150,6 +146,16 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 @media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}.card{background:#fff;border-color:#000;break-inside:avoid}th{color:#000}.plate,.gate-badge,select.gate{-webkit-print-color-adjust:exact;print-color-adjust:exact}select.gate{background:var(--pk);color:#fff;border:1px solid var(--pk)}}
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
+body.spectator header .organizer-only,body.spectator #sel,body.spectator #lo,body.spectator #who{display:none!important}
+body.spectator nav{border-bottom:1px solid var(--line)}
+#shareModal{position:fixed;inset:0;z-index:1000;background:#000b;display:grid;place-items:center;padding:16px}
+#shareModal .card{max-width:420px;width:100%;border-left-color:var(--ye)}
+#shareModal input{width:100%;margin:8px 0}
+#shareQr{display:grid;place-items:center;background:#fff;padding:12px;margin:12px auto;width:max-content;min-width:160px;min-height:160px}
+@media (min-width:769px){
+ #nav .desktop-tab{display:inline-flex;align-items:center;gap:6px}
+ #nav .desktop-tab svg{width:16px;height:16px;display:block;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+}
 /* Navigation mobile uniquement : aucune règle desktop n'est modifiée. */
 .mobile-tabs{display:none}
 @media (max-width:768px){
@@ -169,22 +175,28 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
  main{padding-bottom:14px}
 }
 
+
+/* Navigation iconographique également disponible dans les vues publiques. */
+.mobile-tabs.public-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+.nav-icon{width:16px;height:16px;display:inline-block;vertical-align:middle;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab-label{vertical-align:middle}
+@media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}}
 </style></head><body>
 
 <header>
 <h1>BMX RACE · COURSE LOCALE</h1>
 <select id="sel" onchange="openC(this.value).then(render)"></select>
 
-<button onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
+<button class="organizer-only" onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">➕</button>
 
-<button class="ico" onclick="renC()" title="Renommer" aria-label="Renommer">
+<button class="ico organizer-only" onclick="renC()" title="Renommer" aria-label="Renommer">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M12 20h9"/>
 <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>
 </svg>
 </button>
 
-<button class="ico del" onclick="delC()" title="Supprimer" aria-label="Supprimer">
+<button class="ico del organizer-only" onclick="delC()" title="Supprimer" aria-label="Supprimer">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <polyline points="3 6 5 6 21 6"/>
 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -193,7 +205,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 </svg>
 </button>
 
-<button class="ico" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
+<button class="ico organizer-only" onclick="reload()" title="Recharger depuis le serveur" aria-label="Recharger">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/>
 <polyline points="3 4 3 9 8 9"/>
@@ -202,6 +214,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 </svg>
 </button>
 
+<button id="shareBtn" class="organizer-only" onclick="openShare()" style="display:none">Partager</button>
 <button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">⏻</button>
 <span id="who" class="mut"></span>
 
@@ -223,6 +236,25 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+// Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
+// Prend en charge le décodage URL standard, les anciens liens double-encodés
+// et les identifiants contenant un « + » transmis sans échappement.
+function spectatorIdsFromSearch(search){
+ const params=new URLSearchParams(search),ids=[];
+ const add=value=>{if(value&&!ids.includes(value))ids.push(value)};
+ params.getAll('view').forEach(value=>{add(value);add(value.replace(/ /g,'+'));try{add(decodeURIComponent(value))}catch(e){}});
+ for(const part of String(search||'').replace(/^\?/,'').split('&')){
+  const eq=part.indexOf('=');if(eq<0)continue;
+  let key='';try{key=decodeURIComponent(part.slice(0,eq).replace(/\+/g,' '))}catch(e){}
+  if(key!=='view')continue;
+  try{add(decodeURIComponent(part.slice(eq+1)))}catch(e){}
+ }
+ return ids;
+}
+const spectatorIds=spectatorIdsFromSearch(location.search);
+const spectatorId=spectatorIds[0]||null;
+const spectator=!!spectatorId;
+let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=id=>S.riders.find(r=>r.id===id);
@@ -234,7 +266,8 @@ const gnames=()=>{const used=new Set(S.riders.map(grp));
  const a=S.groups.map(g=>g.n).filter(n=>used.has(n));used.forEach(n=>{if(!a.includes(n))a.push(n)});return a};
 const pts=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?(Number(S.points[n-1])||0):0};
 const hasResult=p=>p!==null&&p!==undefined&&String(p).trim()!=='';
-const finishPos=p=>{const n=Number(p);return Number.isInteger(n)&&n>0?n:0};
+// Une position 0 représente un DNF : dernier rang de la moto, après ses partants.
+const finishPos=(p,starters=0)=>{if(!hasResult(p))return 0;const n=Number(p);return Number.isInteger(n)&&n===0?starters+1:(Number.isInteger(n)&&n>0?n:0)};
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 // ===== Logique de course =====
@@ -250,9 +283,13 @@ function genMotos(){
  for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
  mt=1;tab='motos';save();render()}
 
-function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0});
- S.races.filter(x=>Number(x.ph)>=1&&Number(x.ph)<=3&&x.g===g).forEach(x=>x.rows.forEach(w=>{const o=m[w.rid];if(o){o.p+=pts(w.pos);o.s+=finishPos(w.pos)}}));
- return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s)}
+function rank(g){const m={};S.riders.filter(r=>grp(r)===g).forEach(r=>m[r.id]={r,p:0,s:0,lastPos:Infinity,lastPhase:0,lastOrder:-1});
+ S.races.forEach((x,order)=>{const phase=Number(x.ph);if(!Number.isInteger(phase)||phase<1||phase>3||x.g!==g)return;
+  x.rows.forEach(w=>{const o=m[w.rid];if(o&&hasResult(w.pos)){const pos=finishPos(w.pos,x.rows.length);o.p+=pts(w.pos);o.s+=pos;
+   if(phase>o.lastPhase||(phase===o.lastPhase&&order>o.lastOrder)){o.lastPos=pos;o.lastPhase=phase;o.lastOrder=order}
+  }});
+ });
+ return Object.values(m).sort((a,b)=>b.p-a.p||a.s-b.s||a.lastPos-b.lastPos)}
 
 // Vérifie qu'une position est saisie pour chaque coureur sur chacune des 3 motos.
 function motosCompletes(g){
@@ -379,10 +416,6 @@ function setGate(xid,rid,el){
 // ===== Coureurs =====
 function addR(){const nom=$('#nn').value.trim();if(!nom)return;
  S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
-
-function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
- let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
- S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
 
 function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
 
@@ -653,8 +686,8 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 <h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
-motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
-class:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">${mobileIcon('motos')}<span>Moto ${m}</span></button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
+class:()=>`<div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
 finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np"><button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
 podiums:()=>`<div class="row np"><button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
@@ -662,7 +695,7 @@ return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{cons
 };
 
 
-const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['motos','Motos'],['class','Classements'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
+const TABS=[['coureurs','Coureurs'],['groupes','Groupes et points'],['class','Classements'],['motos','Motos'],['demis','Demis'],['finales','Finales'],['podiums','Podiums']];
 // Tous les onglets sont affichés directement dans la barre mobile.
 const MOBILE_PRIMARY=['coureurs','groupes','class','motos','demis','finales','podiums'];
 const MOBILE_ICONS={
@@ -676,6 +709,7 @@ const MOBILE_ICONS={
 };
 const mobileIcon=(key)=>`<svg viewBox="0 0 24 24" aria-hidden="true">${MOBILE_ICONS[key]||''}</svg>`;
 function mobileNavigate(key){tab=key;render()}
+const navIcon=(key)=>mobileIcon(key).replace('<svg viewBox="0 0 24 24"','<svg class="nav-icon" viewBox="0 0 24 24"');
 const loginV=()=>`<div class="card" style="max-width:340px;margin:40px auto"><h2>Connexion</h2><div class="row"><input id="em" type="email" placeholder="Courriel" style="width:100%"><input id="pw" type="password" placeholder="Mot de passe" style="width:100%"><button class="p" onclick="login()">Se connecter</button><button onclick="signup()">Créer un compte</button></div><p class="mut">Première fois : entre un courriel et un mot de passe (8 caractères minimum), puis « Créer un compte ».</p></div>`;
 
 
@@ -700,15 +734,45 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 <p class="mut">Vérifie également tes courriels indésirables.</p>
 </div>`;
 
+// Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
+const LIVE_TABS=[['live-class','Classements'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+function liveRace(x){
+ const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
+ return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
+}
+let liveMoto=1;
+function liveView(){
+ if(tab==='live-class'){
+  return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`;
+ }
+ if(tab==='live-motos'){
+  const buttons=[1,2,3].map(m=>`<button type="button" class="mb ${m===liveMoto?'on':''}" aria-pressed="${m===liveMoto}" onclick="liveMoto=${m};render()">${mobileIcon('motos')}<span>Moto ${m}</span></button>`).join('');
+  const races=S.races.filter(x=>Number(x.ph)===liveMoto);
+  return `<h2>Motos</h2><div class="row np mototabs" aria-label="Sélectionner une moto">${buttons}</div><section class="live-moto-results" data-moto="${liveMoto}"><h2>Moto ${liveMoto}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}</section>`;
+ }
+ if(tab==='live-podiums')return `<h2>Podiums</h2><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return '';return `<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map((p)=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return `<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`;
+ const phase=tab==='live-demis'?'D':'F';
+ const races=S.races.filter(x=>x.ph===phase);
+ const title=phase==='D'?'Demis':'Finales';
+ return `<h2>${title}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}`;
+}
+function renderSpectator(){
+ document.body.classList.add('spectator');$('#nav').innerHTML=LIVE_TABS.map(([k,l])=>{const key=k.replace('live-','');return `<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${navIcon(key)}<span>${l}</span></button>`}).join('');
+ const mobileTabs=$('#mobileTabs');mobileTabs.classList.add('public-tabs');mobileTabs.innerHTML=LIVE_TABS.map(([k,l])=>{const key=k.replace('live-','');return `<button class="mobile-tab ${k===tab?'on':''}" aria-label="${l}" aria-current="${k===tab?'page':'false'}" onclick="tab='${k}';render()">${mobileIcon(key)}<span>${l}</span></button>`}).join('');
+ $('#app').innerHTML=`<p class="mut">🔴 Vue publique en lecture seule · ${esc(spectatorName)} · mise à jour automatique</p>${liveView()}`;
+}
+
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
+ if(spectator){renderSpectator();return}
+ document.body.classList.remove('spectator');
+ $('#shareBtn').style.display=sb&&user&&cid?'':'none';
  const locked=sb&&!user;
  if(!locked)auto();
  $('#lo').style.display=sb&&user?'':'none';
  document.body.classList.toggle('mobile-locked',locked);
- $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${mobileIcon(k)}<span>${l}</span></button>`).join('');
- const mobileTabs=$('#mobileTabs');
- mobileTabs.innerHTML=locked?'':MOBILE_PRIMARY.map(k=>{const label=TABS.find(x=>x[0]===k)[1].replace(' et points','');return `<button class="mobile-tab ${tab===k?'on':''}" aria-label="${label}" aria-current="${tab===k?'page':'false'}" onclick="mobileNavigate('${k}')">${mobileIcon(k)}<span>${label}</span></button>`}).join('');
+ $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${navIcon(k)}<span>${l}</span></button>`).join('');
+ const mobileTabs=$('#mobileTabs');mobileTabs.classList.remove('public-tabs');mobileTabs.innerHTML=locked?'':MOBILE_PRIMARY.map(k=>{const label=TABS.find(x=>x[0]===k)[1].replace(' et points','');return `<button class="mobile-tab ${tab===k?'on':''}" aria-label="${label}" aria-current="${tab===k?'page':'false'}" onclick="mobileNavigate('${k}')">${mobileIcon(k)}<span>${label}</span></button>`}).join('');
  $('#sel').style.display=sb&&user?'':'none';
   $('#sel').innerHTML=courses.length
   ?courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.nom)} · ${c.updated_at?new Date(c.updated_at).toLocaleString('fr-CA',{dateStyle:'short',timeStyle:'short'}):''}</option>`).join('')
@@ -722,7 +786,7 @@ function render(){
 // ===== Sauvegarde (locale + Supabase) =====
 const stat=t=>$('#st').textContent=t;
 let tm=null,saveInFlight=false;
-function save(){localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
+function save(){if(spectator)return stat('Mode spectateur : écriture interdite');localStorage.bmx_S=JSON.stringify(S);if(!sb||!cid)return stat('Sauvegardé sur cet appareil');
  stat('Sauvegarde…');clearTimeout(tm);
  tm=setTimeout(async()=>{tm=null;saveInFlight=true;const now=new Date().toISOString();const payload=JSON.parse(JSON.stringify(S));
   try{
@@ -744,6 +808,7 @@ async function openC(id){
 
 let creating=false;
 async function newC(){
+ if(spectator)return;
  if(creating)return;
  creating=true;
  try{
@@ -895,14 +960,14 @@ function backToLogin(){
 }
 
 async function renC(){
- if(!sb||!cid)return;
+ if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
  const{error}=await sb.from('courses').update({nom}).eq('id',cid);
  if(error)return alert(error.message);
  await loadList();render()}
  
 async function delC(){
- if(!sb||!cid)return;
+ if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid);
  if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
  const{error}=await sb.from('courses').delete().eq('id',cid);
@@ -979,18 +1044,19 @@ function renderPreservingFocus(){
 
 async function autoSync(){
  lastTry=Date.now();
- if(!sb||!cid||!user||tm!==null||syncInFlight)return;
+ if(spectator){if(!sb||!cid||syncInFlight)return;}else if(!sb||!cid||!user||tm!==null||syncInFlight)return;
  syncInFlight=true;
  try{
-  const{data,error}=await sb.from('courses').select('updated_at,data').eq('id',cid).single();
+  const{data,error}=await sb.from('courses').select('updated_at,data,nom').eq('id',cid).single();
   if(error||!data)return;
   const remote=stableStringify(data.data);
   if(remote!==lastSyncData){
    lastSync=data.updated_at;
    S=Object.assign(DEF(),data.data);
+   if(spectator&&data.nom)spectatorName=data.nom;
    lastSyncData=stableStringify(S);
    // Re-render même pendant l'édition, en conservant le focus et le brouillon.
-   renderPreservingFocus();
+   if(spectator)render();else renderPreservingFocus();
    stat('Mis à jour automatiquement');
   }
  }catch(e){}finally{syncInFlight=false}
@@ -1001,6 +1067,52 @@ window.addEventListener('focus',autoSync);
 window.addEventListener('pageshow',autoSync);
 window.addEventListener('online',autoSync);
 document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync()},{passive:true});
+
+// Partage public par identifiant de course. La lecture publique nécessite une règle SELECT dédiée côté base.
+async function openShare(){
+ if(!sb||!user||!cid)return alert('Connecte-toi et ouvre une course sauvegardée avant de la partager.');
+ // Une sauvegarde est différée de 600 ms : la pousser avant de publier le lien
+ // évite que l’ouverture immédiate (ou le scan du QR) lise l’ancien contenu.
+ try{
+  if(tm!==null){clearTimeout(tm);tm=null;}
+  while(saveInFlight)await new Promise(resolve=>setTimeout(resolve,50));
+  if(stableStringify(S)!==lastSyncData){
+   stat('Synchronisation avant partage…');
+   const payload=JSON.parse(JSON.stringify(S)),now=new Date().toISOString();
+   const{error}=await sb.from('courses').update({data:payload,updated_at:now}).eq('id',cid);
+   if(error)throw error;
+   lastSync=now;lastSyncData=stableStringify(payload);
+  }
+ }catch(e){stat('');return alert('Partage annulé : la course n’a pas pu être synchronisée. '+(e.message||''))}
+ const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('view',cid);
+ const link=url.href;
+ const modal=document.createElement('div');modal.id='shareModal';modal.innerHTML=`<div class="card"><h2>Partager les résultats en direct</h2><p class="mut">Toute personne possédant ce lien pourra consulter les résultats, sans les modifier.</p><input id="shareLink" readonly value="${esc(link)}"><div id="shareQr" aria-label="Code QR du lien"></div><div class="row"><button class="p" id="copyShare">Copier le lien</button><button id="nativeShare">Partager…</button><button id="closeShare">Fermer</button></div><p class="mut">Le lien fonctionne si la politique de lecture publique de Neon autorise cette course.</p></div>`;
+ document.body.appendChild(modal);
+ modal.querySelector('#closeShare').onclick=()=>modal.remove();
+ modal.querySelector('#copyShare').onclick=async()=>{try{await navigator.clipboard.writeText(link);stat('Lien copié')}catch(e){const i=modal.querySelector('#shareLink');i.select();document.execCommand('copy');stat('Lien copié')}};
+ modal.querySelector('#nativeShare').onclick=async()=>{if(navigator.share){try{await navigator.share({title:'Résultats BMX en direct',url:link})}catch(e){}}else modal.querySelector('#copyShare').click()};
+ const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';script.onload=()=>{if(modal.isConnected)new QRCode(modal.querySelector('#shareQr'),{text:link,width:180,height:180,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})};script.onerror=()=>{modal.querySelector('#shareQr').textContent='QR indisponible (CDN)'};document.head.appendChild(script);
+}
+async function loadSpectator(){
+ document.body.classList.add('spectator');tab='live-class';cid=spectatorId;
+ if(!sb){stat('Service de données indisponible');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';return}
+ stat('Chargement des résultats…');
+ let lastError=null;
+ // Un lien peut être ouvert avant la fin de la réplication/cache du service ;
+ // retenter brièvement les lectures au lieu d’afficher une erreur transitoire.
+ for(let attempt=0;attempt<3;attempt++){
+  for(const id of spectatorIds){
+   try{
+    const{data,error}=await sb.from('courses').select('id,nom,updated_at,data').eq('id',id).single();
+    if(!error&&data){S=Object.assign(DEF(),data.data);spectatorName=data.nom||spectatorName;lastSync=data.updated_at;lastSyncData=stableStringify(S);render();stat('Résultats chargés · actualisation toutes les 5 s');return}
+    lastError=error||new Error('Aucune course trouvée pour cet identifiant');
+   }catch(e){lastError=e}
+  }
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));
+ }
+ $('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';
+ stat(lastError?'Erreur de lecture':'');
+}
 
 // Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
 function installNoCacheFetch(){
@@ -1023,17 +1135,19 @@ function installNoCacheFetch(){
    installNoCacheFetch();
    const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
    sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
-   const{data}=await sb.auth.getSession();
+   if(spectator){await loadSpectator()}else{const{data}=await sb.auth.getSession();
    user=data&&data.session?true:null;
-   if(user)await boot();
+   if(user)await boot();}
   }catch(e){
    sb=null;
-   alert('Connexion à Neon impossible : '+e.message);
+   if(spectator){document.body.classList.add('spectator');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion à Neon impossible. Vérifie la configuration du service.</p></div>';stat('Service indisponible')}
+   else alert('Connexion à Neon impossible : '+e.message);
   }
  }
- render();
+ if(!spectator)render();
 })();
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body></html>
