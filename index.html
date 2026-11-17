@@ -747,7 +747,7 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 </div>`;
 
 // Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
-const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classements'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classement'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
 function liveRace(x){
  const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
@@ -760,7 +760,7 @@ function liveRiders(){
       <thead><tr><th>Nom</th><th>N°</th><th>Âge</th><th>Catégorie</th></tr></thead>
       <tbody>${S.riders.map(r=>`<tr>
        <td>${esc(r.nom||'')}</td>
-       <td>${esc(r.num||'')}</td>
+       <td>${plateHtml(r)}</td>
        <td>${esc(r.age??'')}</td>
        <td>${esc(grp(r))}</td>
       </tr>`).join('')}</tbody>
