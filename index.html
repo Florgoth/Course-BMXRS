@@ -175,12 +175,15 @@ body.spectator nav{border-bottom:1px solid var(--line)}
  main{padding-bottom:14px}
 }
 
+.live-riders-wrap{overflow-x:auto}
+table.live-riders{min-width:480px;table-layout:auto}
+table.live-riders th,table.live-riders td{padding:6px 8px}
 
 /* Navigation iconographique également disponible dans les vues publiques. */
-.mobile-tabs.public-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+.mobile-tabs.public-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}
 .nav-icon{width:16px;height:16px;display:inline-block;vertical-align:middle;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab-label{vertical-align:middle}
-@media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
 </style></head><body>
 
 <header>
@@ -707,6 +710,7 @@ const MOBILE_ICONS={
  finales:'<path d="M8 4h8v4a4 4 0 0 1-8 0V4ZM12 12v5M8 21h8M10 17h4M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4"/>',
  podiums:'<path d="M8 4h8v4a4 4 0 0 1-8 0V4ZM12 12v4M9 20h6M10 16h4M5 12h3v4H5zM16 10h3v6h-3z"/>',
 };
+MOBILE_ICONS.riders=MOBILE_ICONS.coureurs;
 const mobileIcon=(key)=>`<svg viewBox="0 0 24 24" aria-hidden="true">${MOBILE_ICONS[key]||''}</svg>`;
 function mobileNavigate(key){tab=key;render()}
 const navIcon=(key)=>mobileIcon(key).replace('<svg viewBox="0 0 24 24"','<svg class="nav-icon" viewBox="0 0 24 24"');
@@ -735,13 +739,29 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 </div>`;
 
 // Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
-const LIVE_TABS=[['live-class','Classements'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classements'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
 function liveRace(x){
  const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
 }
 let liveMoto=1;
+
+function liveRiders(){
+ return `<h2>Coureurs</h2>${S.riders.length
+  ? `<div class="live-riders-wrap"><table class="live-riders">
+      <thead><tr><th>Nom</th><th>Numéro</th><th>Âge</th><th>Catégorie</th></tr></thead>
+      <tbody>${S.riders.map(r=>`<tr>
+       <td>${esc(r.nom||'')}</td>
+       <td>${esc(r.num||'')}</td>
+       <td>${esc(r.age??'')}</td>
+       <td>${esc(grp(r))}</td>
+      </tr>`).join('')}</tbody>
+     </table></div>`
+  : '<p class="mut">Aucun coureur disponible.</p>'}`;
+}
+
 function liveView(){
+   if(tab==='live-riders')return liveRiders();
  if(tab==='live-class'){
   return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`;
  }
