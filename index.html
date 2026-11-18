@@ -199,9 +199,12 @@ table.live-riders th:nth-child(4),table.live-riders td:nth-child(4){width:35%}
 <select id="sel" onchange="openC(this.value).then(render)"></select>
 
 <button class="organizer-only" onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24px" width="24px" fill="#e3e3e3">
-    <path d="M11,17h2V13h4V11H13V7H11v4H7v2h4v4Zm1,5q-2.07,0-3.9-0.79q-1.82-0.79-3.17-2.14Q3.58,17.73 2.79,15.9T2,12Q2,9.92 2.79,8.1Q3.58,6.27 4.93,4.93Q6.28,3.57 8.1,2.79Q9.93,2 12,2t3.9,0.79t3.17,2.14q1.35,1.35 2.14,3.17Q22,9.92 22,12t-0.79,3.9t-2.14,3.17q-1.35,1.35-3.17,2.14T12,22Zm0-2q3.35,0 5.68-2.32T20,12T17.68,6.32T12,4T6.33,6.32T4,1２t２．３３，５．６８Ｔ１２，２０Ｚｍ０－８Ｚ"/></svg>
-  </button>
+<svg>
+  <circle cx="12" cy="12" r="10"/>
+  <path d="M8 12h8"/><path d="M12 8v8"/>
+</svg>
+  
+</button>
 
 <button class="ico organizer-only" onclick="renC()" title="Renommer" aria-label="Renommer">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -228,12 +231,22 @@ table.live-riders th:nth-child(4),table.live-riders td:nth-child(4){width:35%}
 </svg>
 </button>
 
-<button id="shareBtn" class="organizer-only" onclick="openShare()" title="Partager publiquement" aria-label="Partager" style="display:none"><span class="material-symbols-outlined">
-ios_share
-</span></button>
-<button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none"><span class="material-symbols-outlined">
-logout
-</span></button>
+<button id="shareBtn" class="organizer-only" onclick="openShare()" title="Partager publiquement" aria-label="Partager" style="display:none">
+<svg>
+  <path d="M12 2v13"/>
+  <path d="m16 6-4-4-4 4"/>
+  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+</svg>
+
+</button>
+<button id="lo" onclick="logout()" title="Se déconnecter" aria-label="Se déconnecter" style="display:none">
+<svg>
+  <path d="M11 12h10"/>
+  <path d="m17 16 4-4-4-4"/>
+  <path d="M21 6.33V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-1.33"/>
+</svg>
+
+</button>
 <span id="who" class="mut"></span>
 
 <span id="st" class="mut"></span>
