@@ -355,6 +355,35 @@ body.spectator header h1{display:block!important}
 const NEON_AUTH_URL='https://ep-sparkling-base-befj29gr.neonauth.c-9.us-east-2.aws.neon.tech/neondb/auth', NEON_DATA_URL='https://ep-sparkling-base-befj29gr.apirest.c-9.us-east-2.aws.neon.tech/neondb/rest/v1';
 let sb=null;
 
+function dialog({title='Erreur', msg='', icon='⚠️', confirm=false, okText='OK', cancelText='Annuler'}){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');
+    ov.className='dlg-overlay';
+    ov.innerHTML=`
+      <div class="dlg-box" role="alertdialog">
+        <div class="dlg-icon">${icon}</div>
+        <div class="dlg-title">${title}</div>
+        <div class="dlg-msg"></div>
+        <div class="dlg-btns">
+          ${confirm?`<button class="dlg-cancel">${cancelText}</button>`:''}
+          <button class="dlg-ok">${okText}</button>
+        </div>
+      </div>`;
+    ov.querySelector('.dlg-msg').textContent=msg;
+    const close=v=>{ov.remove(); resolve(v)};
+    ov.querySelector('.dlg-ok').onclick=()=>close(true);
+    const c=ov.querySelector('.dlg-cancel');
+    if(c) c.onclick=()=>close(false);
+    ov.onclick=e=>{ if(e.target===ov) close(false) };
+    document.body.appendChild(ov);
+    ov.querySelector('.dlg-ok').focus();
+  });
+}
+const showError=(msg,title='Erreur')=>dialog({title,msg,icon:'⚠️'});
+const showInfo=(msg,title='Information')=>dialog({title,msg,icon:'ℹ️'});
+const showConfirm=(msg,title='Confirmation')=>dialog({title,msg,icon:'❓',confirm:true,okText:'Confirmer'});
+
+
 const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,49]];
  const g=m.map(([a,b])=>({n:a+'-'+b,min:a,max:b,f:0}));g.push({n:'50+',min:50,max:100,f:0});
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
@@ -401,8 +430,8 @@ const mk=(ph,g,label,ids,pick)=>{const gt=shuf([1,2,3,4,5,6,7,8]);
 function waves(ph,g,ids){const n=ids.length,nv=Math.ceil(n/8),b=Math.floor(n/nv),x=n%nv;let i=0;
  for(let v=0;v<nv;v++){const k=b+(v<x?1:0);mk(ph,g,'Vague '+(v+1),ids.slice(i,i+k));i+=k}}
 
-function genMotos(){
- if(S.races.some(r=>r.rows.some(w=>w.pos))&&!confirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?'))return;
+async function genMotos(){
+ if(S.races.some(r=>r.rows.some(w=>w.pos))&&!(await showConfirm('Des résultats existent. Régénérer efface les motos, demis et finales. Continuer?')))return;
  S.races=[];
  for(let m=1;m<=3;m++)gnames().forEach(g=>waves(m,g,shuf(S.riders.filter(r=>grp(r)===g).map(r=>r.id))));
  mt=1;tab='motos';save();render()}
@@ -693,11 +722,11 @@ function previewImport(){
  $('#importBtn').textContent='Importer '+valid.length+' coureurs';
 }
 
-function confirmImport(){
+async function confirmImport(){
  const valid=importRows.filter(validImportRow);
 
- if(!valid.length)return alert('Aucun coureur valide.');
- if(!confirm('Importer '+valid.length+' coureurs dans cette course ?'))return;
+ if(!valid.length)return showError('Aucun coureur valide.');
+ if(!(await showConfirm('Importer '+valid.length+' coureurs dans cette course ?')))return;
 
  valid.forEach(row=>{
   const nom=String(importValue(row,'nom')).trim();
@@ -719,7 +748,7 @@ function confirmImport(){
  save();
  render();
 
- alert(valid.length+' coureurs importés avec succès.');
+ showError(valid.length+' coureurs importés avec succès.');
  cancelImport();
 }
 
@@ -946,7 +975,7 @@ async function loadList(){
 
 async function openC(id){
   const{data,error}=await sb.from('courses').select('*').eq('id',id).single();
-  if(error)return alert(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
+  if(error)return showError(error.message);cid=id;lastSync=data.updated_at;S=Object.assign(DEF(),data.data);lastSyncData=stableStringify(S);localStorage.bmx_cid=id}
 
 let creating=false;
 async function newC(){
@@ -956,12 +985,12 @@ async function newC(){
  try{
   const nom=prompt('Nom de la course (ex. 2026-11-15 Course locale)');
   if(!nom||!nom.trim())return;
-  if(S.riders.length&&!confirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.'))return;
+  if(S.riders.length&&!(await showConfirm('Repartir à zéro ? Les groupes d\'âge et les points actuels sont conservés, pas les coureurs.')))return;
   const nouveau=Object.assign(DEF(),{points:S.points,groups:S.groups});
   if(sb){
    const{data,error}=await sb.from('courses').insert({nom:nom.trim(),data:nouveau}).select().single();
    if(error){
-    return alert(error.code==='23505'
+    return showError(error.code==='23505'
      ?'Une course porte déjà ce nom'
      :'Erreur : '+error.message);
    }
@@ -983,13 +1012,13 @@ async function reload(){if(sb&&cid){await openC(cid);render();stat('Données rec
 async function login(){
  try{stat('Connexion…');const A=sb.auth,c={email:$('#em').value.trim(),password:$('#pw').value};
   const r=A.signIn&&A.signIn.email?await A.signIn.email(c):await A.signInWithPassword(c);
-  if(r&&r.error){stat('');return alert('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
+  if(r&&r.error){stat('');return showError('Connexion refusée : '+(r.error.message||JSON.stringify(r.error)))}
   user=true;await boot();stat('');render();
   authStep='login';
- }catch(e){stat('');alert('Erreur de connexion : '+(e.message||e))}}
+ }catch(e){stat('');showError('Erreur de connexion : '+(e.message||e))}}
 
 async function logout(){
- if(!confirm('Se déconnecter?'))return;
+ if(!(await showConfirm('Se déconnecter?')))return;
  try{
   stat('Déconnexion…');
   await sb.auth.signOut();
@@ -1008,7 +1037,7 @@ async function signup(){
  const em=$('#em').value.trim(),pw=$('#pw').value;
 
  if(!em||!em.includes('@')||pw.length<8)
-   return alert('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
+   return showError('Entre un courriel valide et un mot de passe de 8 caractères minimum.');
 
  try{
   stat('Création du compte…');
@@ -1021,7 +1050,7 @@ async function signup(){
 
   if(r&&r.error){
     stat('');
-    return alert('Création refusée : '+r.error.message);
+    return showError('Création refusée : '+r.error.message);
   }
 
   pendingEmail=em;
@@ -1029,11 +1058,11 @@ async function signup(){
   stat('');
   render();
 
-  alert('Compte créé. Entre le code envoyé par courriel.');
+  showError('Compte créé. Entre le code envoyé par courriel.');
 
  }catch(e){
   stat('');
-  alert('Erreur à la création : '+(e.message||e));
+  showError('Erreur à la création : '+(e.message||e));
  }
 }
 
@@ -1042,7 +1071,7 @@ async function verifyEmailCode(){
  const otp=$('#otp').value.trim();
 
  if(!/^\d{6}$/.test(otp))
-   return alert('Entre le code à 6 chiffres.');
+   return showError('Entre le code à 6 chiffres.');
 
  try{
   stat('Vérification…');
@@ -1054,7 +1083,7 @@ async function verifyEmailCode(){
 
   if(r&&r.error){
     stat('');
-    return alert('Code refusé : '+r.error.message);
+    return showError('Code refusé : '+r.error.message);
   }
 
   try{await sb.auth.signOut()}catch(e){}
@@ -1064,11 +1093,11 @@ async function verifyEmailCode(){
   stat('');
   render();
 
-  alert('Courriel vérifié ! Tu peux maintenant te connecter.');
+  showError('Courriel vérifié ! Tu peux maintenant te connecter.');
 
  }catch(e){
   stat('');
-  alert('Erreur de vérification : '+(e.message||e));
+  showError('Erreur de vérification : '+(e.message||e));
  }
 }
  
@@ -1083,15 +1112,15 @@ async function resendCode(){
 
   if(r&&r.error){
     stat('');
-    return alert('Erreur : '+r.error.message);
+    return showError('Erreur : '+r.error.message);
   }
 
   stat('');
-  alert('Un nouveau code a été envoyé.');
+  showError('Un nouveau code a été envoyé.');
 
  }catch(e){
   stat('');
-  alert('Erreur : '+(e.message||e));
+  showError('Erreur : '+(e.message||e));
  }
 }
 
@@ -1105,15 +1134,15 @@ async function renC(){
  if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid),nom=prompt('Nouveau nom',c&&c.nom);if(!nom)return;
  const{error}=await sb.from('courses').update({nom}).eq('id',cid);
- if(error)return alert(error.message);
+ if(error)return showError(error.message);
  await loadList();render()}
  
 async function delC(){
  if(spectator||!sb||!cid)return;
  const c=courses.find(c=>c.id===cid);
- if(!confirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?'))return;
+ if(!(await showConfirm('Supprimer définitivement « '+(c?c.nom:'')+' » ?')))return;
  const{error}=await sb.from('courses').delete().eq('id',cid);
- if(error)return alert(error.message);
+ if(error)return showError(error.message);
  cid=null;await loadList();
  if(courses[0])await openC(courses[0].id);else await newC();
  render()}
@@ -1212,7 +1241,7 @@ document.addEventListener('touchstart',()=>{if(Date.now()-lastTry>3000)autoSync(
 
 // Partage public par identifiant de course. La lecture publique nécessite une règle SELECT dédiée côté base.
 async function openShare(){
- if(!sb||!user||!cid)return alert('Connecte-toi et ouvre une course sauvegardée avant de la partager.');
+ if(!sb||!user||!cid)return showError('Connecte-toi et ouvre une course sauvegardée avant de la partager.');
  // Une sauvegarde est différée de 600 ms : la pousser avant de publier le lien
  // évite que l’ouverture immédiate (ou le scan du QR) lise l’ancien contenu.
  try{
@@ -1225,7 +1254,7 @@ async function openShare(){
    if(error)throw error;
    lastSync=now;lastSyncData=stableStringify(payload);
   }
- }catch(e){stat('');return alert('Partage annulé : la course n’a pas pu être synchronisée. '+(e.message||''))}
+ }catch(e){stat('');return showError('Partage annulé : la course n’a pas pu être synchronisée. '+(e.message||''))}
  const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('view',cid);
  const link=url.href;
  const modal=document.createElement('div');modal.id='shareModal';modal.innerHTML=`<div class="card"><h2>Partager les résultats en direct</h2><p class="mut">Toute personne possédant ce lien pourra consulter les résultats, sans les modifier.</p><input id="shareLink" readonly value="${esc(link)}"><div id="shareQr" aria-label="Code QR du lien"></div><div class="row"><button class="p" id="copyShare">Copier le lien</button><button id="nativeShare">Partager…</button><button id="closeShare">Fermer</button></div><p class="mut">Le lien fonctionne si la politique de lecture publique de Neon autorise cette course.</p></div>`;
@@ -1355,7 +1384,7 @@ sb=createClient({
   }catch(e){
    sb=null;
    if(spectator){document.body.classList.add('spectator');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion à Neon impossible. Vérifie la configuration du service.</p></div>';stat('Service indisponible')}
-   else alert('Connexion à Neon impossible : '+e.message);
+   else showError('Connexion à Neon impossible : '+e.message);
   }
  }
  if(!spectator)render();
