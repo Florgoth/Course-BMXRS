@@ -213,7 +213,7 @@ table.live-riders th:nth-child(4),table.live-riders td:nth-child(4){width:35%}
 .tab-label{vertical-align:middle}
 @media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
-
+body.spectator header h1{display:block!important}
 </style></head><body>
 
 <header>
@@ -834,7 +834,7 @@ function liveView(){
 function renderSpectator(){
  document.body.classList.add('spectator');$('#nav').innerHTML=LIVE_TABS.map(([k,l])=>{const key=k.replace('live-','');return `<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${navIcon(key)}<span>${l}</span></button>`}).join('');
  const mobileTabs=$('#mobileTabs');mobileTabs.classList.add('public-tabs');mobileTabs.innerHTML=LIVE_TABS.map(([k,l])=>{const key=k.replace('live-','');return `<button class="mobile-tab ${k===tab?'on':''}" aria-label="${l}" aria-current="${k===tab?'page':'false'}" onclick="tab='${k}';render()">${mobileIcon(key)}<span>${l}</span></button>`}).join('');
- $('#app').innerHTML=`<p class="mut">🔴 Vue publique en lecture seule · ${esc(spectatorName)} · mise à jour automatique</p>${liveView()}`;
+ $('#app').innerHTML=`<p class="mut" style="padding-left:1.6em;text-indent:-1.6em">🔴 COURSE: ${esc(spectatorName)}<br>· Vue en lecture seulement · mise à jour automatique</p>${liveView()}`;
 }
 
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
