@@ -114,6 +114,25 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 #lo{font-size:18px;line-height:1;padding:6px 10px}
 #lo:hover{border-color:#f44;color:#f44}
 
+.lbl{display:none}
+@media (max-width:600px){
+  header button.ico{
+    display:flex;
+    flex-direction:column;   /* icône en haut, mot en dessous */
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+  }
+  .lbl{
+    display:block;
+    font-size:9px;           /* plus petit: essayez 8px à 10px */
+    line-height:1;
+    letter-spacing:.2px;
+    white-space:nowrap;
+  }
+}
+
+
 @media(max-width:420px){.rider .l1{grid-template-columns:1fr 58px 58px 46px;gap:6px}}
 
 nav button{padding:8px 14px;opacity:.65}
@@ -193,23 +212,6 @@ table.live-riders th:nth-child(4),table.live-riders td:nth-child(4){width:35%}
 .tab-label{vertical-align:middle}
 @media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
-.lbl{display:none}
-@media (max-width:600px){
-  header button.ico{
-    display:flex;
-    flex-direction:column;   /* icône en haut, mot en dessous */
-    align-items:center;
-    justify-content:center;
-    gap:2px;
-  }
-  .lbl{
-    display:block;
-    font-size:9px;           /* plus petit: essayez 8px à 10px */
-    line-height:1;
-    letter-spacing:.2px;
-    white-space:nowrap;
-  }
-}
 
 </style></head><body>
 
