@@ -1183,7 +1183,7 @@ async function loadSpectator(){
 
 /*_________________________________________________________________________________________________*/
 
-/*async function loadSpectator(){
+async function loadSpectator(){
  document.body.classList.add('spectator');tab='live-class';cid=spectatorId;
  if(!sb){stat('Service de données indisponible');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';return}
  stat('Chargement des résultats…');
@@ -1202,7 +1202,7 @@ async function loadSpectator(){
  }
  $('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';
  stat(lastError?'Erreur de lecture':'');
-}*/
+}
 
 // Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
 function installNoCacheFetch(){
@@ -1224,7 +1224,17 @@ function installNoCacheFetch(){
   try{
    installNoCacheFetch();
    const{createClient}=await import('https://esm.sh/@neondatabase/neon-js');
-   sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+   
+   //sb=createClient({auth:{url:NEON_AUTH_URL},dataApi:{url:NEON_DATA_URL}});
+
+sb=createClient({
+  auth:{
+    url:NEON_AUTH_URL,
+    allowAnonymous:true
+  },
+  dataApi:{url:NEON_DATA_URL}
+});
+
    if(spectator){await loadSpectator()}else{const{data}=await sb.auth.getSession();
    user=data&&data.session?true:null;
    if(user)await boot();}
