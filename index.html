@@ -1121,7 +1121,69 @@ async function openShare(){
  modal.querySelector('#nativeShare').onclick=async()=>{if(navigator.share){try{await navigator.share({title:'Résultats BMX en direct',url:link})}catch(e){}}else modal.querySelector('#copyShare').click()};
  const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';script.onload=()=>{if(modal.isConnected)new QRCode(modal.querySelector('#shareQr'),{text:link,width:180,height:180,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M})};script.onerror=()=>{modal.querySelector('#shareQr').textContent='QR indisponible (CDN)'};document.head.appendChild(script);
 }
+/*_________________________________________________________________________________________________*/
+
+function spectatorTechnicalError(e){
+ if(!e)return 'Aucune ligne trouvée pour cet identifiant.';
+ return [
+  e.message||String(e),
+  e.code&&('code='+e.code),
+  e.details&&('détails='+e.details),
+  e.hint&&('indice='+e.hint),
+  e.status&&('HTTP '+e.status)
+ ].filter(Boolean).join(' · ');
+}
+
+let spectatorLoading=false;
 async function loadSpectator(){
+ if(spectatorLoading)return;
+ spectatorLoading=true;
+ document.body.classList.add('spectator');
+ tab='live-class';
+ cid=spectatorId;
+ try{
+  if(!sb){
+   stat('Service de données indisponible');
+   $('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';
+   return;
+  }
+  stat('Chargement des résultats…');
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+   for(const id of spectatorIds){
+    try{
+     const{data,error}=await sb.from('courses')
+      .select('id,nom,updated_at,data').eq('id',id).single();
+     if(!error&&data){
+      S=Object.assign(DEF(),data.data);
+      spectatorName=data.nom||spectatorName;
+      lastSync=data.updated_at;
+      lastSyncData=stableStringify(S);
+      render();
+      stat('Résultats chargés · actualisation toutes les 5 s');
+      return;
+     }
+     lastError=error||new Error('Aucune course trouvée pour cet identifiant.');
+    }catch(e){
+     lastError=e;
+    }
+   }
+   if(attempt<2)await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));
+  }
+  $('#app').innerHTML=
+   `<div class="card"><h2>Course indisponible</h2>
+   <p>La lecture publique a échoué. Détail technique :</p>
+   <pre style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(spectatorTechnicalError(lastError))}</pre>
+   <button class="p" type="button" onclick="loadSpectator()">Réessayer</button></div>`;
+  stat('Erreur de lecture');
+ }finally{
+  spectatorLoading=false;
+ }
+}
+
+/*_________________________________________________________________________________________________*/
+
+/*async function loadSpectator(){
  document.body.classList.add('spectator');tab='live-class';cid=spectatorId;
  if(!sb){stat('Service de données indisponible');$('#app').innerHTML='<div class="card"><h2>Vue publique indisponible</h2><p>Connexion au service Neon impossible.</p></div>';return}
  stat('Chargement des résultats…');
@@ -1140,7 +1202,7 @@ async function loadSpectator(){
  }
  $('#app').innerHTML='<div class="card"><h2>Course indisponible</h2><p>Le lien est invalide ou la lecture publique n’est pas autorisée par la base de données.</p></div>';
  stat(lastError?'Erreur de lecture':'');
-}
+}*/
 
 // Les lectures REST de la base distante doivent contourner le cache HTTP mobile.
 function installNoCacheFetch(){
