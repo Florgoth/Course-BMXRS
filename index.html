@@ -116,18 +116,16 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 
 .lbl{display:none}
 @media (max-width:600px){
-  header button.ico{
-    display:flex;
-    flex-direction:column;   /* icône en haut, mot en dessous */
-    align-items:center;
-    justify-content:center;
-    gap:2px;
-  }
+  /* Première ligne : le sélecteur de course seul; deuxième ligne : les actions. */
+  header h1, header #who, header #st{display:none}
+  header #sel{order:0;flex:1 0 100%;width:100%;min-width:0}
+  header button{order:1;display:flex;flex:1 1 0;min-width:0;max-width:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 1px}
   .lbl{
     display:block;
-    font-size:9px;           /* plus petit: essayez 8px à 10px */
+    font-size:8px;
     line-height:1;
-    letter-spacing:.2px;
+    letter-spacing:.1px;
     white-space:nowrap;
   }
 }
@@ -166,6 +164,7 @@ nav button.on{opacity:1;background:var(--pk);border-color:var(--tx);color:#fffff
 @media print{.gn{color:#000;border-bottom-color:#000}}
 
 body.spectator header .organizer-only,body.spectator #sel,body.spectator #lo,body.spectator #who{display:none!important}
+body.auth-locked header button,body.auth-locked #sel,body.auth-locked #nav,body.auth-locked #mobileTabs{display:none!important}
 body.spectator nav{border-bottom:1px solid var(--line)}
 #shareModal{position:fixed;inset:0;z-index:1000;background:#000b;display:grid;place-items:center;padding:16px}
 #shareModal .card{max-width:420px;width:100%;border-left-color:var(--ye)}
@@ -845,6 +844,7 @@ function render(){
  if(!locked)auto();
  $('#lo').style.display=sb&&user?'':'none';
  document.body.classList.toggle('mobile-locked',locked);
+ document.body.classList.toggle('auth-locked',locked);
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${navIcon(k)}<span>${l}</span></button>`).join('');
  const mobileTabs=$('#mobileTabs');mobileTabs.classList.remove('public-tabs');mobileTabs.innerHTML=locked?'':MOBILE_PRIMARY.map(k=>{const label=TABS.find(x=>x[0]===k)[1].replace(' et points','');return `<button class="mobile-tab ${tab===k?'on':''}" aria-label="${label}" aria-current="${tab===k?'page':'false'}" onclick="mobileNavigate('${k}')">${mobileIcon(k)}<span>${label}</span></button>`}).join('');
  $('#sel').style.display=sb&&user?'':'none';
@@ -1295,5 +1295,6 @@ sb=createClient({
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body></html>
