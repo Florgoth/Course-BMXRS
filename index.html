@@ -114,10 +114,12 @@ input[type=file]::file-selector-button{background:var(--pk);color:var(--tx);bord
 #lo{font-size:18px;line-height:1;padding:6px 10px}
 #lo:hover{border-color:#f44;color:#f44}
 
-.lbl{display:none}
+.lbl{display:block;font-size:10px;line-height:1;letter-spacing:.1px;white-space:nowrap}
+header button{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 @media (max-width:600px){
-  /* Première ligne : le sélecteur de course seul; deuxième ligne : les actions. */
-  header h1, header #who, header #st{display:none}
+  /* Titre, sélecteur de course, puis actions sur trois lignes distinctes. */
+  header h1{display:block;order:-1}
+  header #who, header #st{display:none}
   header #sel{order:0;flex:1 0 100%;width:100%;min-width:0}
   header button{order:1;display:flex;flex:1 1 0;min-width:0;max-width:none;
     flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 1px}
