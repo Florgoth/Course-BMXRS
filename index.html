@@ -192,13 +192,32 @@ table.live-riders th:nth-child(4),table.live-riders td:nth-child(4){width:35%}
 .nav-icon{width:16px;height:16px;display:inline-block;vertical-align:middle;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab-label{vertical-align:middle}
 @media (max-width:768px){.mobile-tabs.public-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
+.lbl{display:none}
+@media (max-width:600px){
+  header button.ico{
+    display:flex;
+    flex-direction:column;   /* icône en haut, mot en dessous */
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+  }
+  .lbl{
+    display:block;
+    font-size:9px;           /* plus petit: essayez 8px à 10px */
+    line-height:1;
+    letter-spacing:.2px;
+    white-space:nowrap;
+  }
+}
+
 </style></head><body>
 
 <header>
 <h1>BMX RACE · COURSE LOCALE</h1>
 <select id="sel" onchange="openC(this.value).then(render)"></select>
 
-<button class="organizer-only" onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">
+<button class="ico organizer-only" onclick="newC()" title="Nouvelle course" aria-label="Nouvelle course">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <circle cx="12" cy="12" r="10"/>
   <path d="M8 12h8"/><path d="M12 8v8"/>
