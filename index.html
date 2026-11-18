@@ -249,6 +249,37 @@ body.spectator header h1{display:block!important}
   #mobileTabs button{min-width:0;font-size:clamp(9px,2.6vw,12px)}
   img,table,canvas{max-width:100%}
 }
+
+.dlg-overlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,.55);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+  animation:dlgFade .15s ease;
+}
+.dlg-box{
+  background:#2a2c30; /* mettez la couleur de fond de vos cartes */
+  color:#fff;
+  width:100%; max-width:380px;
+  border-radius:16px;
+  padding:22px 20px 16px;
+  box-shadow:0 10px 40px rgba(0,0,0,.5);
+  text-align:center;
+  animation:dlgPop .18s ease;
+}
+.dlg-icon{font-size:38px; margin-bottom:6px}
+.dlg-title{font-size:18px; font-weight:700; margin-bottom:8px}
+.dlg-msg{font-size:14px; opacity:.85; line-height:1.4; margin-bottom:18px; white-space:pre-line}
+.dlg-btns{display:flex; gap:10px}
+.dlg-btns button{
+  flex:1; padding:12px; border:0; border-radius:10px;
+  font-size:15px; font-weight:600; cursor:pointer;
+}
+.dlg-ok{background:#e53935; color:#fff}
+.dlg-cancel{background:#3a3f4b; color:#fff}
+@keyframes dlgFade{from{opacity:0}to{opacity:1}}
+@keyframes dlgPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+
 </style></head><body>
 
 <header>
