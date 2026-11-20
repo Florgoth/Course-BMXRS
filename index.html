@@ -41,6 +41,8 @@ td input[type=number]{width:70px}
 .gate-badge{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:4px;background:var(--pk);color:#fff;font-weight:800}
 .mut{color:var(--mut)}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.page-search{flex:1 1 210px;min-width:min(100%,180px);max-width:360px}
+@media(max-width:600px){.page-search{flex:1 1 100%;max-width:none}}
 select.gate{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:800;text-align:center;min-width:56px}
 select.gate option{background:#fff;color:#111}
 select.gate option:disabled{color:#aaa}
@@ -280,9 +282,6 @@ body.spectator header h1{display:block!important}
 @keyframes dlgFade{from{opacity:0}to{opacity:1}}
 @keyframes dlgPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 
-.page-search{flex:1 1 210px;min-width:min(100%,180px);max-width:360px}
-@media(max-width:600px){.page-search{flex:1 1 100%;max-width:none}}
-
 </style></head><body>
 
 <header>
@@ -413,6 +412,29 @@ const spectator=!!spectatorId;
 let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const pageSearch={coureurs:'',motos:'',class:'',demis:'',finales:'',podiums:''};
+const searchFold=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
+function searchInput(key,placeholder){
+ return `<input type="search" class="page-search" value="${esc(pageSearch[key])}" placeholder="${placeholder}" aria-label="${placeholder}" oninput="setPageFilter(this,'${key}')">`;
+}
+function setPageFilter(input,key){pageSearch[key]=input.value;applyPageFilter(key)}
+function applyPageFilter(key){
+ const selector=key==='coureurs'?'#app table.riders tbody tr':key==='podiums'?'#app .podium-card':'#app table.rc tr';
+ const query=searchFold(pageSearch[key]);
+ document.querySelectorAll(selector).forEach(row=>{
+  if(key!=='podiums'&&!row.querySelector('td'))return;
+  const values=Array.from(row.querySelectorAll('input,select,textarea'))
+   .filter(el=>!el.matches('input[type="checkbox"],input[type="radio"]'))
+   .map(el=>el.value||'').join(' ');
+  const text=searchFold((row.innerText||row.textContent||'')+' '+values);
+  row.style.display=!query||text.includes(query)?'':'none';
+ });
+}
+function applyCurrentPageFilter(){
+ if(Object.prototype.hasOwnProperty.call(pageSearch,tab))applyPageFilter(tab);
+}
+
 const R=id=>S.riders.find(r=>r.id===id);
 // Priorité des couleurs de plaque : numéro contenant une lettre (vert), puis fille (bleu), sinon jaune.
 const plateClass=r=>`plate ${/[a-z]/i.test(String(r&&r.num||''))?'plate-letter':(r&&r.f?'plate-girl':'')}`;
@@ -816,29 +838,6 @@ return`<tr>${gate}<td>${plateHtml(r)}<td class="nm">${esc(r.nom)}<td><select cla
    return {...c,ready:true};
   };
 
-const pageSearch={coureurs:'',motos:'',class:'',demis:'',finales:''};
-const searchFold=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
-function searchInput(key,placeholder){
- return `<input type="search" class="page-search" value="${esc(pageSearch[key])}" placeholder="${placeholder}" aria-label="${placeholder}" oninput="setPageFilter(this,'${key}')">`;
-}
-function setPageFilter(input,key){pageSearch[key]=input.value;applyPageFilter(key)}
-function applyPageFilter(key){
- const selector=key==='coureurs'?'#app table.riders tbody tr':'#app table.rc tr';
- const query=searchFold(pageSearch[key]);
- document.querySelectorAll(selector).forEach(row=>{
-  if(!row.querySelector('td'))return;
-  const values=Array.from(row.querySelectorAll('input,select,textarea'))
-   .filter(el=>!el.matches('input[type="checkbox"],input[type="radio"]'))
-   .map(el=>el.value||'').join(' ');
-  const text=searchFold((row.innerText||row.textContent||'')+' '+values);
-  row.style.display=!query||text.includes(query)?'':'none';
- });
-}
-function applyCurrentPageFilter(){
- if(tab==='coureurs')applyPageFilter('coureurs');
- else if(['motos','class','demis','finales'].includes(tab))applyPageFilter(tab);
-}
-
   const V={
 coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="Nom"><input id="nu" placeholder="N°" size="5"><input id="na" type="number" placeholder="Âge" style="width:80px"><label><input type="checkbox" id="nf"> Fille</label><button class="p" onclick="addR()">Ajouter</button>${searchInput('coureurs','Rechercher un coureur…')}</div>
 
@@ -865,21 +864,12 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 <h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
-motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+searchInput('motos','Rechercher dans les lignes…')+searchInput('motos','Rechercher dans les lignes…')+'<button onclick="print()">Imprimer</button>'
-  :''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
-class:()=>`<div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
-demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `
-  <div class="row np">${searchInput('class','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div>`
-  +diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`
-  <div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
-finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `
-  <div class="row np">${searchInput('class','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div>`
-  +diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
-podiums:()=>`
-  <div class="row np">${searchInput('class','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div>
-  <div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
-return`<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`
-  <div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
+motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${searchInput('motos','Rechercher dans les lignes…')}${generated?[1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+'<button onclick="print()">Imprimer</button>':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
+class:()=>`<div class="row np">${searchInput('class','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
+demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np">${searchInput('demis','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
+finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np">${searchInput('finales','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
+podiums:()=>`<div class="row np">${searchInput('podiums','Rechercher dans les lignes…')}<button onclick="print()">Imprimer</button></div><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return'';
+return`<div class="card podium-card"><span class="gn">${esc(g)}</span>${[1,2,3].map(p=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return`<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`
 };
 
 
@@ -978,6 +968,7 @@ function render(){
  document.body.classList.toggle('mobile-locked',locked);
  document.body.classList.toggle('auth-locked',locked);
  $('#nav').innerHTML=locked?'':TABS.map(([k,l])=>`<button class="desktop-tab ${k===tab?'on':''}" onclick="tab='${k}';render()">${navIcon(k)}<span>${l}</span></button>`).join('');
+
  const mobileTabs=$('#mobileTabs');mobileTabs.classList.remove('public-tabs');mobileTabs.innerHTML=locked?'':MOBILE_PRIMARY.map(k=>{const label=TABS.find(x=>x[0]===k)[1].replace(' et points','');return `<button class="mobile-tab ${tab===k?'on':''}" aria-label="${label}" aria-current="${tab===k?'page':'false'}" onclick="mobileNavigate('${k}')">${mobileIcon(k)}<span>${label}</span></button>`}).join('');
  $('#sel').style.display=sb&&user?'':'none';
   $('#sel').innerHTML=courses.length
@@ -987,7 +978,7 @@ function render(){
  $('#app').innerHTML=locked?
   (authStep==='verify'?verificationV():loginV())
   :V[tab]();
-  applyCurrentPageFilter();
+   applyCurrentPageFilter();
 }
 
 // ===== Sauvegarde (locale + Supabase) =====
@@ -1425,8 +1416,6 @@ sb=createClient({
  }
  if(!spectator)render();
 })();
-
-
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 
