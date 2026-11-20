@@ -280,6 +280,25 @@ body.spectator header h1{display:block!important}
 @keyframes dlgFade{from{opacity:0}to{opacity:1}}
 @keyframes dlgPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 
+.flt-bar{
+  display:flex; align-items:center; gap:8px;
+  margin:8px 0 12px; flex-wrap:wrap;
+}
+.flt-bar input{
+  flex:1; min-width:160px;
+  padding:10px 12px 10px 36px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 10px center;
+  color:inherit; font-size:15px;
+}
+.flt-bar .flt-clear{
+  border:0; border-radius:10px; padding:10px 12px;
+  background:#3a3f4b; color:#fff; cursor:pointer; display:none;
+}
+.flt-bar .flt-count{font-size:12px; opacity:.7}
+@media print{ .flt-bar{display:none} }
+
 </style></head><body>
 
 <header>
@@ -1388,6 +1407,71 @@ sb=createClient({
   }
  }
  if(!spectator)render();
+})();
+
+(function(){
+  let q = '';
+  const norm = s => (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+  function applyFilter(){
+    const n = norm(q).trim();
+    document.querySelectorAll('table').forEach(t=>{
+      if(t.closest('.flt-bar')) return;
+      let shown = 0, total = 0;
+      t.querySelectorAll('tbody tr, tr').forEach(tr=>{
+        if(tr.closest('thead') || tr.querySelector('th')) return;
+        total++;
+        const ok = !n || norm(tr.textContent).includes(n);
+        tr.style.display = ok ? '' : 'none';
+        if(ok) shown++;
+      });
+      t.dataset.fltShown = shown;
+      t.dataset.fltTotal = total;
+    });
+    document.querySelectorAll('.flt-bar').forEach(b=>{
+      const inp = b.querySelector('input');
+      if(inp.value !== q) inp.value = q;
+      b.querySelector('.flt-clear').style.display = q ? 'inline-block' : 'none';
+      const tbl = b.nextElementSibling && b.nextElementSibling.matches('table')
+        ? b.nextElementSibling : null;
+      b.querySelector('.flt-count').textContent =
+        (q && tbl) ? `${tbl.dataset.fltShown}/${tbl.dataset.fltTotal}` : '';
+    });
+  }
+
+  function makeBar(){
+    const bar = document.createElement('div');
+    bar.className = 'flt-bar';
+    bar.innerHTML = `<input type="search" placeholder="Rechercher (nom, numéro, moto...)" autocomplete="off">
+      <button class="flt-clear" type="button">✕</button>
+      <span class="flt-count"></span>`;
+    const inp = bar.querySelector('input');
+    inp.value = q;
+    inp.addEventListener('input', e=>{ q = e.target.value; applyFilter(); });
+    bar.querySelector('.flt-clear').onclick = ()=>{ q=''; applyFilter(); inp.focus(); };
+    return bar;
+  }
+
+  function inject(){
+    document.querySelectorAll('table').forEach(t=>{
+      if(t.closest('.flt-bar')) return;
+      if(t.rows.length < 3) return;            // ignore les mini-tableaux
+      const prev = t.previousElementSibling;
+      if(prev && prev.classList.contains('flt-bar')) return;
+      t.parentNode.insertBefore(makeBar(), t);
+    });
+    applyFilter();
+  }
+
+  // Réagit à chaque re-rendu de page (changement d'onglet, rechargement, etc.)
+  let timer;
+  new MutationObserver(()=>{
+    clearTimeout(timer);
+    timer = setTimeout(inject, 60);
+  }).observe(document.body,{childList:true,subtree:true});
+
+  inject();
 })();
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
