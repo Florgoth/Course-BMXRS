@@ -72,6 +72,9 @@ table.rt th:nth-child(6),table.rt td:nth-child(6){width:34px}
 
 .compact table{width:auto;table-layout:auto}.compact th,.compact td{white-space:nowrap;padding:4px 7px}.compact td input:not([type=checkbox]){width:auto;min-width:0;padding:4px 5px}.compact td input[type=text]{width:120px}.compact td input[type=number]{width:58px}.compact td input[type=checkbox]{width:18px;height:18px}
 .riders{table-layout:auto}.riders th,.riders td{padding:4px 5px;vertical-align:middle}.riders td input:not([type=checkbox]){min-width:0}.riders .r-name{width:100%}.riders .r-name input{width:100%;min-width:150px}.riders .r-num{width:78px}.riders .r-age{width:60px}.riders .r-gp{white-space:nowrap}.riders .r-force{width:150px}.riders .r-force input{width:140px!important}
+.public-riders{table-layout:fixed;width:100%}.public-riders th,.public-riders td{padding:6px 5px;overflow-wrap:anywhere}.public-riders th:first-child,.public-riders td:first-child{width:40%}.public-riders th:nth-child(2),.public-riders td:nth-child(2){width:16%;text-align:center}.public-riders th:nth-child(3),.public-riders td:nth-child(3){width:14%;text-align:center}.public-riders th:nth-child(4),.public-riders td:nth-child(4){width:30%}.sort-name{background:none;border:0;border-radius:0;padding:0;color:inherit;font:inherit;min-width:0}
+body.spectator header button,body.spectator #sel,body.spectator #who{display:none!important}
+body.spectator nav{border-bottom:1px solid var(--line)}
 .compact>.row label{min-width:88px}.compact>.row input[type=number]{width:60px!important}
 .age-groups{table-layout:fixed;width:100%}.age-groups th:first-child,.age-groups td:first-child{width:38%}.age-groups th:nth-child(2),.age-groups td:nth-child(2),.age-groups th:nth-child(3),.age-groups td:nth-child(3){width:20%}.age-groups th:nth-child(4),.age-groups td:nth-child(4){width:14%}.age-groups th:last-child,.age-groups td:last-child{width:8%}.age-groups input:not([type=checkbox]){min-width:0!important;width:100%!important}
 td.nom{word-break:break-word;font-size:14px}
@@ -399,6 +402,9 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
 let riderSortDirection=0;
 
+const publicCourseId=new URLSearchParams(location.search).get('view');
+
+
 // Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
 // Prend en charge le décodage URL standard, les anciens liens double-encodés
 // et les identifiants contenant un « + » transmis sans échappement.
@@ -617,6 +623,46 @@ function addR(){const nom=$('#nn').value.trim();if(!nom)return;
 function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
 
 function delR(id){S.riders=S.riders.filter(r=>r.id!==id);S.races.forEach(x=>x.rows=x.rows.filter(w=>w.rid!==id));save();render()}
+
+
+// Tableau public en lecture seule : réutilise le même état, tri et helper que l'organisateur.
+function liveRiders(){
+ return `<h2>Coureurs</h2>${S.riders.length
+  ? `<div style="overflow-x:auto"><table class="public-riders"><thead><tr><th aria-sort="${riderSortDirection===1?'ascending':riderSortDirection===-1?'descending':'none'}"><button type="button" class="sort-name" onclick="toggleRiderSort()" aria-label="Trier par nom">Nom${riderSortDirection===1?' ▲':riderSortDirection===-1?' ▼':''}</button></th><th>N°</th><th>Âge</th><th>Catégorie</th></tr></thead>
+      <tbody>${ridersForView().map(r=>`<tr><td>${esc(r.nom||'')}</td><td>${plateHtml(r)}</td><td>${esc(r.age??'')}</td><td>${esc(grp(r))}</td></tr>`).join('')}</tbody></table></div>`
+  : '<p class="mut">Aucun coureur disponible.</p>'}`;
+}
+
+async function loadPublicCourse(){
+ if(!sb)return false;
+ const {data,error}=await sb.from('courses').select('nom,data').eq('id',publicCourseId).single();
+ if(error||!data)return false;
+ S=Object.assign(DEF(),data.data);spectatorName=data.nom||spectatorName;cid=publicCourseId;return true;
+}
+
+const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classement'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+function liveRace(x){
+ const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
+ return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
+}
+let liveMoto=1;
+
+function liveView(){
+   if(tab==='live-riders')return liveRiders();
+ if(tab==='live-class'){
+  return `<h2>Classements en direct</h2><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`;
+ }
+ if(tab==='live-motos'){
+  const buttons=[1,2,3].map(m=>`<button type="button" class="mb ${m===liveMoto?'on':''}" aria-pressed="${m===liveMoto}" onclick="liveMoto=${m};render()">Moto ${m}</button>`).join('');
+  const races=S.races.filter(x=>Number(x.ph)===liveMoto);
+  return `<h2>Motos</h2><div class="row np mototabs" aria-label="Sélectionner une moto">${buttons}</div><section class="live-moto-results" data-moto="${liveMoto}"><h2>Moto ${liveMoto}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}</section>`;
+ }
+ if(tab==='live-podiums')return `<h2>Podiums</h2><div class="grid">${gnames().map(g=>{const f=S.races.find(x=>x.ph==='F'&&x.g===g&&x.label==='Finale A');if(!f)return '';return `<div class="card"><span class="gn">${esc(g)}</span>${[1,2,3].map((p)=>{const w=f.rows.find(w=>+w.pos===p),r=w&&R(w.rid);return `<div style="font-size:19px;margin-top:4px">${['🥇','🥈','🥉'][p-1]} ${r?plateHtml(r)+' '+esc(r.nom):'<span class="mut">—</span>'}</div>`}).join('')}</div>`}).join('')}</div>`;
+ const phase=tab==='live-demis'?'D':'F';
+ const races=S.races.filter(x=>x.ph===phase);
+ const title=phase==='D'?'Demis':'Finales';
+ return `<h2>${title}</h2>${races.length?`<div class="grid">${races.map(liveRace).join('')}</div>`:'<p class="mut">Aucun résultat disponible.</p>'}`;
+}
 
 
 let importRows=[];
@@ -933,13 +979,13 @@ style="width:100%;text-align:center;font-size:24px;letter-spacing:6px">
 </div>`;
 
 // Vues publiques : HTML statique uniquement, sans champs, boutons ni gestionnaires d’édition.
-const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classement'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
+/*const LIVE_TABS=[['live-riders','Coureurs'],['live-class','Classement'],['live-motos','Motos'],['live-demis','Demis'],['live-finales','Finales'],['live-podiums','Podiums']];
 function liveRace(x){
  const rows=x.pick?[...x.rows]:[...x.rows].sort((a,b)=>(+a.gate||99)-(+b.gate||99));
  return `<div class="card"><span class="gn">${esc(x.g)}<small>${esc(x.label)}</small></span><table class="rc"><tr>${x.pick?'<th>Ch.':''}<th>Porte<th>N°<th class="nm">Nom<th>Pos<th>Pts</tr>${rows.map((w,i)=>{const r=R(w.rid)||{};return `<tr>${x.pick?`<td class="ch">${i+1}`:''}<td>${x.pick?(w.gate?`<span class="gate-badge">${esc(w.gate)}</span>`:'—'):`<span class="gate-badge">${esc(w.gate)}</span>`}<td>${plateHtml(r)}<td class="nm">${esc(r.nom||'') }<td>${w.pos===0?'DNF':(hasResult(w.pos)?esc(w.pos):'—')}<td class="pt">${hasResult(w.pos)?pts(w.pos):'—'}</tr>`}).join('')}</table></div>`;
 }
 let liveMoto=1;
-
+*/
 function liveRiders(){
  return `<h2>Coureurs</h2>${S.riders.length
   ? `<div class="live-riders-wrap"><table class="live-riders">
@@ -978,6 +1024,8 @@ function renderSpectator(){
 
 // Fonction RENDER : met à jour l'interface selon l'état actuel (onglet, utilisateur, etc.)
 function render(){
+   if(spectator){document.body.classList.add('spectator');$('#nav').innerHTML=LIVE_TABS.map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');$('#app').innerHTML=`<p class="mut">Vue publique en lecture seule · ${esc(spectatorName)}</p><div class="row np"><button type="button" onclick="print()">Imprimer</button></div>${liveView()}`;return}
+ document.body.classList.remove('spectator');
  if(spectator){renderSpectator();return}
  document.body.classList.remove('spectator');
  $('#shareBtn').style.display=sb&&user&&cid?'':'none';
