@@ -44,12 +44,9 @@ td input[type=number]{width:70px}
 
 .page-search{flex:1 1 210px;min-width:min(100%,180px);max-width:360px}
 
-.btn-print .ico-print{display:none!important;width:22px;height:22px;fill:none;stroke:currentColor}
-@media(max-width:600px){
-  .btn-print{flex:0 0 auto!important;display:inline-flex!important;align-items:center;justify-content:center;width:44px!important;height:44px!important;min-width:44px;padding:0!important}
-  .btn-print .lbl-print{display:none!important}
-  .btn-print .ico-print{display:block!important}
-}
+.btn-print{flex:0 0 auto!important;display:inline-flex!important;align-items:center;justify-content:center;width:44px!important;height:44px!important;min-width:44px;padding:0!important}
+.btn-print .lbl-print{display:none!important}
+.btn-print .ico-print{display:block!important;width:22px;height:22px;fill:none;stroke:currentColor}
 
 select.gate{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:800;text-align:center;min-width:56px}
 select.gate option{background:#fff;color:#111}
@@ -874,7 +871,7 @@ groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="ro
 <h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
 <p class="mut">Pour combiner deux catégories dans une même course, élargis l'intervalle d'âge (ex. 9-12) ou force le groupe sur les coureurs concernés. Les groupes doivent être réglés avant de générer les motos.</p></div>`,
-motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated? [1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+searchInput('motos','Rechercher dans les listes...')+'${printBtn}':''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
+motos:()=>{const generated=S.races.some(x=>x.ph===1||x.ph===2||x.ph===3);return `<div class="row np"><button class="p" onclick="genMotos()">Générer les 3 motos</button>${generated? [1,2,3].map(m=>`<button class="mb ${m===mt?'on':''}" onclick="mt=${m};render()">Moto ${m}</button>`).join('')+searchInput('motos','Rechercher dans les listes...')+printBtn:''}</div><h1>Moto ${mt}</h1>`+grid(x=>x.ph===mt,'Aucune moto générée. Ajoute les coureurs puis clique « Générer les 3 motos ».')},
 class:()=>`<div class="row np">${searchInput('class','Rechercher dans les listes...')}${printBtn}</div><div class="grid">${gnames().map(g=>`<div class="card"><span class="gn">${esc(g)}</span><table class="rc standings"><tr><th>#<th>N°<th>Nom<th>Pts<th>Σ pos</tr>${rank(g).map((o,i)=>`<tr><td>${i+1}<td>${plateHtml(o.r)}<td>${esc(o.r.nom)}<td><b>${o.p}</b><td class="mut">${o.s}`).join('')}</table></div>`).join('')}</div>`,
 demis:()=>{const checks=gnames().map(diagnosticDemis),incomplete=checks.filter(c=>!c.direct&&!c.ready),ready=new Set(checks.filter(c=>!c.direct&&c.ready).map(c=>c.g)),demiRows=S.races.filter(x=>x.ph==='D'&&ready.has(x.g));return `<div class="row np">${searchInput('demis','Rechercher dans les listes...')}${printBtn}</div>`+diagnosticHtml(incomplete,'Résultats manquants avant les demis')+(demiRows.length?`<div class="grid">${demiRows.map(rc).join('')}</div>`:(incomplete.length?'':'<p class="mut">Aucun demi à afficher.</p>'))},
 finales:()=>{const checks=gnames().map(finaleState),incomplete=checks.filter(c=>!c.ready),ready=new Set(checks.filter(c=>c.ready).map(c=>c.g));return `<div class="row np">${searchInput('finales','Rechercher dans les listes...')}${printBtn}</div>`+diagnosticHtml(incomplete,'Résultats manquants avant les finales')+grid(x=>x.ph==='F'&&ready.has(x.g),'Aucune finale.')},
