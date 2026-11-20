@@ -405,6 +405,7 @@ let riderSortDirection=0;
 const publicCourseId=new URLSearchParams(location.search).get('view');
 
 
+
 // Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
 // Prend en charge le décodage URL standard, les anciens liens double-encodés
 // et les identifiants contenant un « + » transmis sans échappement.
@@ -422,7 +423,8 @@ function spectatorIdsFromSearch(search){
 }
 const spectatorIds=spectatorIdsFromSearch(location.search);
 const spectatorId=spectatorIds[0]||null;
-const spectator=!!spectatorId;
+//const spectator=!!spectatorId;
+const spectator=!!publicCourseId;
 let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1486,6 +1488,6 @@ sb=createClient({
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 
-
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body></html>
