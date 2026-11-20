@@ -43,13 +43,12 @@ td input[type=number]{width:70px}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
 
 .page-search{flex:1 1 210px;min-width:min(100%,180px);max-width:360px}
-.btn-print .ico-print{display:none;width:22px;height:22px;vertical-align:middle}
+
+.btn-print .ico-print{display:none!important;width:22px;height:22px;fill:none;stroke:currentColor}
 @media(max-width:600px){
-  .page-search{flex:1 1 0;min-width:0;max-width:none}
-  .btn-print{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
-    width:44px;height:44px;padding:0}
-  .btn-print .lbl-print{display:none}
-  .btn-print .ico-print{display:block}
+  .btn-print{flex:0 0 auto!important;display:inline-flex!important;align-items:center;justify-content:center;width:44px!important;height:44px!important;min-width:44px;padding:0!important}
+  .btn-print .lbl-print{display:none!important}
+  .btn-print .ico-print{display:block!important}
 }
 
 select.gate{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:800;text-align:center;min-width:56px}
@@ -422,7 +421,7 @@ let spectatorName='Course partagée';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-const printBtn=`<button class="btn-print" onclick="print()" aria-label="Imprimer" title="Imprimer"><span class="lbl-print">Imprimer</span><svg class="ico-print" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></button>`;
+const printBtn='<button class="btn-print" onclick="print()" aria-label="Imprimer" title="Imprimer"><span class="lbl-print">Imprimer</span><svg class="ico-print" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></button>';
 
 const pageSearch={coureurs:'',motos:'',class:'',demis:'',finales:'',podiums:''};
 const searchFold=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr');
