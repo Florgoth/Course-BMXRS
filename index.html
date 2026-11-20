@@ -397,6 +397,8 @@ const DEF=()=>{const m=[[5,6],[7,8],[9,10],[11,12],[13,14],[15,16],[17,29],[30,4
  m.forEach(([a,b])=>g.push({n:a+'-'+b+' F',min:a,max:b,f:1}));
  return{points:[10,8,6,5,4,3,2,1],groups:g,riders:[],races:[],uid:1}};
 let S=DEF(),cid=null,tab='coureurs',mt=1,user=null,courses=[];
+let riderSortDirection=0;
+
 // Un lien ?view=<id> ouvre une vue publique strictement en lecture seule.
 // Prend en charge le décodage URL standard, les anciens liens double-encodés
 // et les identifiants contenant un « + » transmis sans échappement.
@@ -600,8 +602,17 @@ function setGate(xid,rid,el){
 }
 
 // ===== Coureurs =====
+function toggleRiderSort(){riderSortDirection=riderSortDirection===1?-1:1;render()}
+const ridersForView=()=>riderSortDirection
+ ? [...S.riders].sort((a,b)=>String(a.nom||'').localeCompare(String(b.nom||''),'fr',{sensitivity:'base'})*riderSortDirection)
+ : S.riders;
+
 function addR(){const nom=$('#nn').value.trim();if(!nom)return;
  S.riders.push({id:S.uid++,nom,num:$('#nu').value.trim(),age:+$('#na').value,f:$('#nf').checked,go:''});save();render()}
+
+ function impR(){let k=0;$('#imp').value.split('\n').forEach(l=>{const p=l.split(/\t|;|,/).map(s=>s.trim());
+ let age=+p[2];if(!p[0]||isNaN(age)||!p[2])return;const f=age>100;if(f)age-=100;
+ S.riders.push({id:S.uid++,nom:p[0],num:p[1]||'',age,f,go:''});k++});alert(k+' coureurs importés.');save();render()}
 
 function upd(id,k,v){const r=R(id);r[k]=k==='age'?+v:v;save();if(['num','age','f','go'].includes(k))render()}
 
@@ -867,7 +878,7 @@ coureurs:()=>`<div class="card np"><div class="row"><input id="nn" placeholder="
 
 <datalist id="gl">${S.groups.map(g=>`<option>${esc(g.n)}`).join('')}</datalist>
 <p class="mut">${S.riders.length} coureurs. « Groupe forcé » vide = groupe automatique selon l'âge. Donne le même groupe à plusieurs coureurs pour les combiner ou surclasser un athlète.</p>
-<table class="riders"><thead><tr><th>Nom</th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${S.riders.map(r=>`<tr><td class="r-name" data-label="Nom"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num" data-label="N°"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age" data-label="Âge"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td class="r-sex" data-label="Fille"><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp" data-label="Groupe actuel">${esc(grp(r))}</td><td class="r-force" data-label="Groupe forcé"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td class="r-delete"><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
+<table class="riders"><thead><tr><th aria-sort="${riderSortDirection===1?'ascending':riderSortDirection===-1?'descending':'none'}"><button type="button" onclick="toggleRiderSort()" aria-label="Trier par nom" style="background:none;border:0;border-radius:0;padding:0;color:inherit;font:inherit;min-width:0">Nom${riderSortDirection===1?' ▲':riderSortDirection===-1?' ▼':''}</button></th><th>#</th><th>Âge</th><th>Fille</th><th>Groupe actuel</th><th>Groupe forcé</th><th></th></tr></thead><tbody>${ridersForView().map(r=>`<tr><td class="r-name" data-label="Nom"><input value="${esc(r.nom)}" onchange="upd(${r.id},'nom',this.value)"></td><td class="r-num" data-label="N°"><input class="${plateClass(r)} plate-input" value="${esc(r.num)}" onchange="upd(${r.id},'num',this.value)"></td><td class="r-age" data-label="Âge"><input type="number" inputmode="numeric" value="${esc(r.age)}" onchange="upd(${r.id},'age',this.value)"></td><td class="r-sex" data-label="Fille"><input type="checkbox" ${r.f?'checked':''} onchange="upd(${r.id},'f',this.checked)"></td><td class="r-gp" data-label="Groupe actuel">${esc(grp(r))}</td><td class="r-force" data-label="Groupe forcé"><input list="gl" placeholder="Groupe forcé" value="${esc(r.go)}" onchange="upd(${r.id},'go',this.value.trim())"></td><td class="r-delete"><button class="del" onclick="delR(${r.id})" title="Supprimer">✕</button></td></tr>`).join('')}</tbody></table>`,
 groupes:()=>`<div class="compact"><h2>- POINTS PAR POSITION -</h2><div class="row">${S.points.map((p,i)=>`<label>${i+1}<sup>e</sup> <input type="number" style="width:48px" value="${p}" onchange="S.points[${i}]=+this.value;save()"></label>`).join('')}</div>
 <h2>- GROUPES D'ÂGES -</h2><table class="age-groups"><tr><th>Nom<th>Âge min<th>Âge max<th>Fille<th></tr>${S.groups.map((g,i)=>`<tr><td><input value="${esc(g.n)}" onchange="S.groups[${i}].n=this.value;save()"><td><input type="number" value="${g.min}" onchange="S.groups[${i}].min=+this.value;save()"><td><input type="number" value="${g.max}" onchange="S.groups[${i}].max=+this.value;save()"><td><input type="checkbox" ${g.f?'checked':''} onchange="S.groups[${i}].f=this.checked;save()"><td><button class="del" onclick="S.groups.splice(${i},1);save();render()">✕</button>`).join('')}</table>
 <div class="row"><button onclick="S.groups.push({n:'Nouveau',min:5,max:6,f:0});save();render()">+ Groupe</button></div>
@@ -1427,6 +1438,6 @@ sb=createClient({
 
 </script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
 </body></html>
